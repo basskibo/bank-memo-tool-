@@ -15,6 +15,7 @@ from src.agents.citation_validator import validate_citations
 from src.agents.document_ingestor import ingest_document
 from src.agents.financial_wizard import extract_fields
 from src.models.schemas import ExtractedField, IngestedDocument
+from src.review.pipeline_messages import msg_ingest_done, msg_validate_done, msg_validate_field, msg_validate_start
 
 
 class PipelineState(TypedDict):
@@ -23,11 +24,16 @@ class PipelineState(TypedDict):
     fields: list[ExtractedField]
     error: str | None
     on_progress: Callable[[str, int, int], None] | None
+    on_log: Callable[[dict], None] | None
+    cancel_check: Callable[[], bool] | None
 
 
 def node_ingest(state: PipelineState) -> PipelineState:
     try:
         document = ingest_document(state["file_path"])
+        on_log = state.get("on_log")
+        if on_log:
+            on_log(msg_ingest_done(document))
         return {**state, "document": document}
     except Exception as exc:  # noqa: BLE001 — POC: surface any ingestion failure to state
         return {**state, "error": f"ingest failed: {exc}"}
@@ -36,14 +42,37 @@ def node_ingest(state: PipelineState) -> PipelineState:
 def node_extract(state: PipelineState) -> PipelineState:
     if state.get("error") or state["document"] is None:
         return state
-    fields = extract_fields(state["document"], on_progress=state.get("on_progress"))
+    cancel_check = state.get("cancel_check")
+    fields = extract_fields(
+        state["document"],
+        on_progress=state.get("on_progress"),
+        cancel_check=cancel_check,
+    )
+    if cancel_check and cancel_check():
+        return {**state, "fields": fields, "error": "cancelled"}
     return {**state, "fields": fields}
 
 
 def node_validate(state: PipelineState) -> PipelineState:
     if state.get("error") or state["document"] is None:
         return state
-    validated = validate_citations(state["fields"], state["document"])
+    if state.get("cancel_check") and state["cancel_check"]():
+        return {**state, "error": "cancelled"}
+    on_log = state.get("on_log")
+    if on_log:
+        on_log(msg_validate_start())
+
+    def on_validate_field(field_name: str, i: int, total: int) -> None:
+        if on_log:
+            on_log(msg_validate_field(field_name, i, total))
+
+    validated = validate_citations(
+        state["fields"], state["document"], on_field=on_validate_field,
+    )
+    if on_log:
+        confirmed = sum(1 for f in validated if f.status == "confirmed")
+        needs_review = sum(1 for f in validated if f.status == "needs_review")
+        on_log(msg_validate_done(confirmed, needs_review))
     return {**state, "fields": validated}
 
 
@@ -60,7 +89,10 @@ def build_extraction_graph():
 
 
 def run_extraction(
-    file_path: str, on_progress: Callable[[str, int, int], None] | None = None
+    file_path: str,
+    on_progress: Callable[[str, int, int], None] | None = None,
+    on_log: Callable[[dict], None] | None = None,
+    cancel_check: Callable[[], bool] | None = None,
 ) -> PipelineState:
     """Ingest -> extract -> validate za jedan dokument. Ovo je ono što se meri u PLAN.md Danu 5."""
     app = build_extraction_graph()
@@ -70,6 +102,8 @@ def run_extraction(
         "fields": [],
         "error": None,
         "on_progress": on_progress,
+        "on_log": on_log,
+        "cancel_check": cancel_check,
     }
     return app.invoke(initial)
 

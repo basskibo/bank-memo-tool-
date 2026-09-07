@@ -6,6 +6,7 @@ navedenoj strani izvornog dokumenta. Ovo je najvažniji guardrail u celom POC-u 
 — "citation integrity" je 100%-zahtev čak i u dijagnostičkom merenju).
 """
 import re
+from typing import Callable
 
 from src.models.schemas import ExtractedField, IngestedDocument
 
@@ -15,12 +16,17 @@ def _normalize(text: str) -> str:
 
 
 def validate_citations(
-    fields: list[ExtractedField], document: IngestedDocument
+    fields: list[ExtractedField],
+    document: IngestedDocument,
+    on_field: Callable[[str, int, int], None] | None = None,
 ) -> list[ExtractedField]:
     pages_by_number = {p.page_number: p.text for p in document.pages}
     validated: list[ExtractedField] = []
+    total = len(fields)
 
-    for field in fields:
+    for i, field in enumerate(fields, start=1):
+        if on_field:
+            on_field(field.field_name, i, total)
         page_text = pages_by_number.get(field.source_page)
 
         if page_text is None:

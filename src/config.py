@@ -22,3 +22,22 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 LLM_MODEL = os.environ.get("POC_LLM_MODEL", "claude-haiku-4-5-20251001")
 
 SAMPLE_DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "sample_docs")
+
+
+def sample_doc_path(filename: str) -> Path:
+    """Resolve a sample PDF by filename (searches company subfolders under sample_docs/)."""
+    root = Path(SAMPLE_DOCS_DIR)
+    direct = root / filename
+    if direct.is_file():
+        return direct
+    matches = sorted(root.glob(f"**/{filename}"))
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise FileNotFoundError(f"Ambiguous sample doc: {filename}")
+    raise FileNotFoundError(f"Sample doc not found: {filename}")
+
+
+def iter_sample_docs() -> list[Path]:
+    """All sample PDFs, sorted by company folder then filename."""
+    return sorted(Path(SAMPLE_DOCS_DIR).glob("**/*.pdf"))

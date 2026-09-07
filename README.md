@@ -67,13 +67,28 @@ Ovo radi sledeće, uživo, u terminalu:
 Ako nešto ne prođe kako se očekuje — to nije nužno bug, to je tačno ono što POC treba da otkrije
 (vidi PLAN.md, "Izlazna odluka posle POC-a").
 
-### Alternativa: interaktivni review UI
+### Preporučeno: SCB Credit Memo Portal (interaktivni UI)
 
 ```bash
 .venv/bin/streamlit run src/review/app.py
 ```
-Otvara se u browseru — biraš test dokument, pokrećeš ekstrakciju, ručno potvrđuješ/ispravljaš
-sporna polja, pa generišeš memo. Ovo je bliže tome kako bi stvarni credit officer koristio alat.
+Otvara se u browseru na `http://localhost:8501` (ili preko `preview_start`/`.claude/launch.json`
+u ovom radnom okruženju — konfiguracija `scb-credit-memo-portal` na portu 8765). Ovo je bank-
+stilizovan portal koji najbliže liči na to kako bi stvarni credit officer koristio alat:
+
+- **Drag-and-drop upload** proizvoljnog PDF dokumenta (ili izbor jednog od 4 test dokumenta iz
+  `sample_docs/`).
+- **Živ prikaz obrade** — dok pipeline radi, vidi se tačno koje polje/sekcija se trenutno
+  obrađuje (`st.status()` sa live log-om), ne samo spinner bez konteksta.
+- **Review korak** — polja koja zahtevaju pregled se prikazuju sa predloženom vrednošću, izvorom
+  i mogućnošću ispravke/potvrde, isto kao i pre.
+- **Generisanje i preuzimanje izveštaja** — posle generisanja memoranduma, dugme "Download report
+  (PDF)" pravi kompletan PDF izveštaj (izvučena polja + nacrt memoranduma + guardrail nalaz) preko
+  `reports/live_report.py`, na licu mesta, za taj konkretan upload.
+
+Podržava više uploadovanih dokumenata odjednom — svaki dobija svoju karticu i obrađuje se
+nezavisno (POC trenutno ne kombinuje više dokumenata u jedan memo — SPEC.md 3.1.2 podržava to za
+Financial Wizard, ali orkestracija u `graph.py` još radi jedan-dokument-po-pozivu).
 
 ### Testovi (ne traže LLM provider)
 
@@ -106,11 +121,18 @@ poc/
 │   │   ├── citation_validator.py    # provera citata (bez LLM-a)
 │   │   └── narrative_synthesizer.py # ExtractedField[] → DraftMemo (LLM) + guardrail provera
 │   ├── orchestration/graph.py       # LangGraph wiring + apply_human_review()
-│   ├── review/app.py                 # Streamlit review UI
+│   ├── review/app.py                 # SCB Credit Memo Portal — Streamlit UI (upload, live log, report)
 │   ├── llm_client.py                 # Ollama + Anthropic API wrapper (isti interfejs)
 │   └── config.py                     # učitava .env, bira provider
+├── reports/
+│   ├── pdf_common.py                 # deljeni ReportLab stilovi/tabele
+│   ├── generate_report.py            # snapshot izveštaj za Run 1 (evaluation/FINDINGS.md)
+│   └── live_report.py                # PDF izveštaj za JEDAN stvaran upload, koristi ga portal
 └── tests/
 ```
+
+`../.claude/launch.json` (van `poc/`) sadrži `scb-credit-memo-portal` konfiguraciju za pokretanje
+portala preko `preview_start` u ovom radnom okruženju, na portu 8765.
 
 ## Sledeći koraci (vidi PLAN.md)
 

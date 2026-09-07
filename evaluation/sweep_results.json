@@ -1,0 +1,1092 @@
+{
+  "provider": "api / anthropic (model: claude-haiku-4-5-20251001, klju\u010d: sk-ant-api...AQAA (du\u017eina 108))",
+  "total_elapsed_s": 414.2,
+  "total_matches": 123,
+  "total_safe_mismatches": 2,
+  "total_dangerous_mismatches": 0,
+  "results": [
+    {
+      "file": "acme_trading/acme_trading_financial_statements_fy2023.pdf",
+      "elapsed_s": 17.0,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Acme Trading LLC",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "Fiscal Year 2023 (ended 31 December 2023)",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "12,450,000",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "7,200,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "5,250,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "18,300,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "1,120,000",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "Overdraft facility of USD 500,000 with National Bank, utilized at approximately 60% as of 31 December 2023",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "acme_trading/acme_trading_financial_statements_fy2024.pdf",
+      "elapsed_s": 17.6,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Acme Trading LLC",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "Fiscal Year 2024 (ended 31 December 2024)",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "14,100,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "8,050,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "6,050,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "21,750,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "1,540,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "Overdraft facility USD 500,000 with National Bank; Trade finance line USD 300,000 with National Bank",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "acme_trading/acme_trading_loan_application.pdf",
+      "elapsed_s": 24.4,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Acme Trading LLC",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "USD 500,000 overdraft facility (utilized ~60%) and USD 300,000 trade finance line",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "requested_facility_amount",
+          "value": "2,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "collateral_offered",
+          "value": "(1) Commercial warehouse property located in the Free Zone, independently valued at USD 3,200,000 as of March 2025; (2) Personal guarantee from majority shareholder Mr. Karim El-Sayed covering the full facility amount",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 4,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "alex_maritime/alex_maritime_financial_statements_fy2023.pdf",
+      "elapsed_s": 18.7,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Alexandria Maritime Services S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "2023",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "89,200,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "54,700,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "34,500,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "142,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "9,300,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "Overdraft facility of EGP 12,000,000 with Suez Canal Bank (Alexandria branch), utilized at 55%. Trade finance limit of EGP 20,000,000 with Commercial International Bank (CIB) for import LC backing, partially drawn.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "alex_maritime/alex_maritime_financial_statements_fy2024.pdf",
+      "elapsed_s": 18.8,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Alexandria Maritime Services S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "year ended 31 December 2024",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "96,500,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "59,500,000",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "37,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "158,600,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "11,200,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "SCB overdraft EGP 12,000,000 (utilization 48%); CIB trade finance limit EGP 25,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "alex_maritime/alex_maritime_loan_application.pdf",
+      "elapsed_s": 21.3,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Alexandria Maritime Services S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "EGP 12,000,000 overdraft with Suez Canal Bank (~48% utilized); EGP 25,000,000 trade finance limit with CIB",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "requested_facility_amount",
+          "value": "18,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "collateral_offered",
+          "value": "Pledge of three vessel agency contracts with Mediterranean Shipping Co.; first-ranking charge over office and warehouse at Port of Alexandria, Block 7 (valued EGP 22,000,000); standby LC from parent Alexandria Group Holdings.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 4,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "beta_supplies/beta_supplies_low_quality.pdf",
+      "elapsed_s": 24.7,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Beta Supplies Co.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": null
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "the year",
+          "status": "needs_review",
+          "confidence": 0.5,
+          "expected": null
+        },
+        {
+          "field_name": "total_assets",
+          "value": "None",
+          "status": "needs_review",
+          "confidence": 0.3,
+          "expected": "needs_review"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "9.1",
+          "status": "needs_review",
+          "confidence": 0.6,
+          "expected": "needs_review"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "various, details with relationship manager",
+          "status": "needs_review",
+          "confidence": 0.4,
+          "expected": "needs_review"
+        }
+      ],
+      "matches": 3,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "cairo_textile/cairo_textile_financial_statements_fy2023.pdf",
+      "elapsed_s": 19.4,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Cairo Textile Exports S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "31 December 2023",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "92,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "52,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "40,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "156,400,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "6,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "Pre-shipment export finance EGP 18,000,000 with Suez Canal Bank (utilized 60%). EGP 12,000,000 term loan with Export Development Bank of Egypt (EDBE) for machinery.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "cairo_textile/cairo_textile_financial_statements_fy2024.pdf",
+      "elapsed_s": 21.7,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Cairo Textile Exports S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "Year ended 31 December 2024",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "100,400,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "57,700,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "42,700,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "172,900,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "8,500,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "SCB pre-shipment facility: EGP 22,000,000; EDBE term loan: EGP 10,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "cairo_textile/cairo_textile_loan_application.pdf",
+      "elapsed_s": 22.6,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Cairo Textile Exports S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "EGP 22,000,000 pre-shipment finance with Suez Canal Bank; EGP 10,800,000 term loan balance with EDBE",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "requested_facility_amount",
+          "value": "15,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "collateral_offered",
+          "value": "Export receivables assignment (buyers: H&M; C&A; Inditex subsidiaries); machinery lien on spinning and weaving lines (valued EGP 35,000,000); Export Insurance Policy from Export Credit Guarantee Company of Egypt (ECGE)",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 4,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "delta_construction/delta_construction_financial_statements_fy2023.pdf",
+      "elapsed_s": 19.6,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Delta Construction & Contracting LLC",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "year ended 31 December 2023",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "128,600,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "95,100,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "33,500,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "245,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "8,100,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "Project finance facility of EGP 40,000,000 with Suez Canal Bank for New Capital housing project (drawn EGP 28,500,000). EGP 10,000,000 bid-bond line with QNB Alahli.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "delta_construction/delta_construction_financial_statements_fy2024.pdf",
+      "elapsed_s": 18.9,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Delta Construction & Contracting LLC",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "31 December 2024",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "135,400,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "104,700,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "30,700,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "268,400,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "6,400,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "SCB project finance facility EGP 35,000,000 drawn; Suez Canal Bank performance bond facility EGP 15,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "delta_construction/delta_construction_loan_application.pdf",
+      "elapsed_s": 22.9,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Delta Construction & Contracting LLC",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "EGP 35,000,000 project finance + EGP 15,000,000 performance bond line with Suez Canal Bank; EGP 10,000,000 bid-bond line with QNB Alahli",
+          "status": "needs_review",
+          "confidence": 0.85,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "requested_facility_amount",
+          "value": "35,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "collateral_offered",
+          "value": "Assignment of receivables under Ministry of Housing contract MH-2023-NAC-4412; mortgage over equipment fleet (valued EGP 28,000,000); retention account with Suez Canal Bank",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 3,
+      "safe_mismatches": 1,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "misr_pharma/misr_pharma_financial_statements_fy2023.pdf",
+      "elapsed_s": 19.1,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Misr Pharma Distribution S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "2023",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "118,900,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "76,500,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "42,400,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "312,600,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "7,200,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "Inventory financing line EGP 30,000,000 with Suez Canal Bank (utilized 81%). EGP 5,000,000 overdraft with Arab African International Bank for payroll cycles.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "misr_pharma/misr_pharma_financial_statements_fy2024.pdf",
+      "elapsed_s": 19.6,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Misr Pharma Distribution S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "2024",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "129,400,000",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "83,500,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "45,900,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "341,200,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "9,600,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "SCB inventory line of EGP 35,000,000 (utilized 76%); AAIB overdraft (repaid and closed in Q2 2024)",
+          "status": "confirmed",
+          "confidence": 0.85,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "misr_pharma/misr_pharma_loan_application.pdf",
+      "elapsed_s": 20.8,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Misr Pharma Distribution S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "35,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "requested_facility_amount",
+          "value": "20,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "collateral_offered",
+          "value": "Floating charge over pharmaceutical inventory (minimum coverage ratio 1.5x); warehouse at Plot 22, Industrial Zone, 10th of Ramadan (valued EGP 18,000,000); personal guarantees of Dr. Yasmine El-Masry (CEO) and Mr. Tarek Abdel Rahman (CFO)",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 4,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "nile_delta_foods/nile_delta_foods_financial_statements_fy2023.pdf",
+      "elapsed_s": 18.3,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Nile Delta Foods S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "year ended 31 December 2023",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "112,400,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "58,600,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "53,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "186,500,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "12,100,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "EGP 15,000,000 revolving working-capital facility with Suez Canal Bank (utilized at 72%) and EGP 8,000,000 letter-of-credit line with National Bank of Egypt",
+          "status": "needs_review",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 7,
+      "safe_mismatches": 1,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "nile_delta_foods/nile_delta_foods_financial_statements_fy2024.pdf",
+      "elapsed_s": 19.4,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Nile Delta Foods S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "31 December 2024",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_assets",
+          "value": "124,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_liabilities",
+          "value": "65,200,000",
+          "status": "confirmed",
+          "confidence": 0.99,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "total_equity",
+          "value": "59,600,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "208,300,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "net_income",
+          "value": "15,800,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "Suez Canal Bank working-capital facility EGP 18,000,000 (utilized at 65%); NBE LC line EGP 8,000,000; Banque Misr equipment finance line EGP 5,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 8,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "nile_delta_foods/nile_delta_foods_loan_application.pdf",
+      "elapsed_s": 23.4,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Nile Delta Foods S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "EGP 18,000,000 working-capital facility with Suez Canal Bank (~65% utilized); EGP 8,000,000 LC line with National Bank of Egypt; EGP 5,000,000 equipment finance with Banque Misr (Q4 2024)",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "requested_facility_amount",
+          "value": "25,000,000",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        },
+        {
+          "field_name": "collateral_offered",
+          "value": "First-ranking mortgage over production facility at Plot 14, Industrial Zone, 6th of October (independent valuation EGP 42,000,000 by CBE-registered valuer El Masreya, dated January 2025); assignment of receivables from top-3 retail customers; corporate guarantee from parent Nile Delta Holdings S.A.E.; personal guarantee of Mr. Ahmed Hassan Farouk (Managing Director)",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": "confirmed"
+        }
+      ],
+      "matches": 4,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    },
+    {
+      "file": "sinai_agro/sinai_agro_low_quality.pdf",
+      "elapsed_s": 25.8,
+      "fields": [
+        {
+          "field_name": "company_name",
+          "value": "Sinai Agro-Industrial Co. S.A.E.",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "expected": null
+        },
+        {
+          "field_name": "reporting_period",
+          "value": "FY",
+          "status": "needs_review",
+          "confidence": 0.5,
+          "expected": null
+        },
+        {
+          "field_name": "annual_revenue",
+          "value": "62",
+          "status": "needs_review",
+          "confidence": 0.5,
+          "expected": "needs_review"
+        },
+        {
+          "field_name": "existing_bank_facilities",
+          "value": "",
+          "status": "needs_review",
+          "confidence": 0.3,
+          "expected": "needs_review"
+        }
+      ],
+      "matches": 2,
+      "safe_mismatches": 0,
+      "dangerous_mismatches": 0
+    }
+  ]
+}

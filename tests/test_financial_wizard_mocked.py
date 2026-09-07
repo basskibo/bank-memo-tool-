@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.agents.document_ingestor import ingest_document
 from src.agents.financial_wizard import extract_fields
-from src.config import SAMPLE_DOCS_DIR
+from src.config import sample_doc_path
 
 
 def fake_complete_json(system: str, user: str, max_tokens: int = 4096):
@@ -37,7 +37,7 @@ def fake_complete_json(system: str, user: str, max_tokens: int = 4096):
 
 
 def test_extract_fields_handles_mixed_model_response_shapes():
-    doc = ingest_document(Path(SAMPLE_DOCS_DIR) / "acme_trading_financial_statements_fy2023.pdf")
+    doc = ingest_document(sample_doc_path("acme_trading_financial_statements_fy2023.pdf"))
 
     with patch("src.agents.financial_wizard.complete_json", side_effect=fake_complete_json):
         fields = extract_fields(doc)

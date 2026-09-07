@@ -25,10 +25,22 @@ class LLMNotConfigured(RuntimeError):
 
 
 def _extract_json(text: str) -> dict | list:
-    """LLM ume da obmota JSON u markdown fence ili prateći tekst — izvuci samo JSON blok."""
+    """
+    LLM ume da vrati JSON umotan u markdown fence, sa objašnjenjem PRE ili POSLE JSON bloka, ili
+    oboje — čak i kad prompt eksplicitno traži "samo JSON". Umesto da zahtevamo da je ceo odgovor
+    čist JSON (što je pucalo na Anthropic odgovorima tipa "{...}\n\nNote: ..."), pronađemo prvi
+    '{' ili '[' u tekstu i parsiramo JEDNU validnu JSON vrednost od te tačke pomoću raw_decode,
+    ignorišući sve što dolazi posle nje (umesto da to izazove "Extra data" grešku).
+    """
     fence_match = re.search(r"```(?:json)?\s*(\{.*\}|\[.*\])\s*```", text, re.DOTALL)
     candidate = fence_match.group(1) if fence_match else text
-    return json.loads(candidate)
+
+    start = next((i for i, ch in enumerate(candidate) if ch in "{["), None)
+    if start is None:
+        raise ValueError(f"Model nije vratio nikakav JSON objekat/niz: {text!r}")
+
+    obj, _ = json.JSONDecoder().raw_decode(candidate, start)
+    return obj
 
 
 def masked_key_preview() -> str:

@@ -17,7 +17,13 @@ from typing import Callable
 from pydantic import ValidationError
 
 from src.llm_client import complete_json
+from src.models.field_display import enrich_field_unit
 from src.models.schemas import CONFIDENCE_THRESHOLD, POC_FIELD_NAMES, ExtractedField, IngestedDocument
+
+MONETARY_FIELDS = frozenset({
+    "total_assets", "total_liabilities", "total_equity",
+    "annual_revenue", "net_income", "requested_facility_amount",
+})
 
 FIELD_SYSTEM_PROMPT = """You are the Financial Wizard capability of a credit memo agent.
 
@@ -38,6 +44,18 @@ Rules (do not break these):
    {"field_name": str, "value": str, "unit": str|null, "source_page": int,
     "source_snippet": str, "confidence": float, "status": "confirmed"|"needs_review",
     "validation_note": str|null}
+6. For monetary amounts (balances, revenue, income, facility amounts): put ONLY the numeric
+   amount in `value` (e.g. "96,500,000") and the currency code in `unit` (e.g. "EGP", "USD")
+   exactly as stated in the document header or line item. If currency is not clear, set
+   status="needs_review" and explain in `validation_note` — do not guess.
+7. `requested_facility_amount` and `collateral_offered` describe a NEW facility being formally
+   requested for approval — they only apply to credit/loan APPLICATION documents. A financial
+   statement's "Bank Borrowings and Credit Facilities" note describes EXISTING, already-granted
+   facilities, even when it states a facility's approved limit (e.g. "Project finance facility of
+   EGP 40,000,000... drawn EGP 28,500,000"). Do NOT extract `requested_facility_amount` from such
+   a note just because an amount appears there — that amount belongs under
+   `existing_bank_facilities`, not a new request. Only extract these two fields when the document
+   itself is an application/request for a new facility.
 """
 
 
@@ -76,6 +94,7 @@ def _parse_one_field(raw: dict, field_name: str, document_id: str) -> ExtractedF
 def extract_fields(
     document: IngestedDocument,
     on_progress: Callable[[str, int, int], None] | None = None,
+    cancel_check: Callable[[], bool] | None = None,
 ) -> list[ExtractedField]:
     if not document.quality_ok:
         return []  # Document Ingestor already flagged this — Financial Wizard doesn't guess on it
@@ -83,15 +102,23 @@ def extract_fields(
     total = len(POC_FIELD_NAMES)
     fields: list[ExtractedField] = []
     for i, field_name in enumerate(POC_FIELD_NAMES, start=1):
+        if cancel_check and cancel_check():
+            break
         if on_progress:
             on_progress(field_name, i, total)
         user_prompt = (
-            f"Field to extract: {field_name}\n\n"
-            f"Document (pages marked as [PAGE n]):\n\n{document.full_text()}"
+            f"Field to extract: {field_name}\n"
+            f"Document type (classified during ingestion): {document.document_type}\n"
+            + (
+                "This is a monetary amount — extract currency into `unit` and the number into `value`.\n"
+                if field_name in MONETARY_FIELDS else ""
+            )
+            + f"\nDocument (pages marked as [PAGE n]):\n\n{document.full_text()}"
         )
         raw = complete_json(FIELD_SYSTEM_PROMPT, user_prompt)
         field = _parse_one_field(raw, field_name, document.document_id)
         if field:
+            field = enrich_field_unit(field, document)
             fields.append(field)
 
     return fields

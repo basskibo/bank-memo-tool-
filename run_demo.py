@@ -20,7 +20,7 @@ from rich.table import Table
 
 from evaluation.expected_values import EXPECTED
 from src.agents.narrative_synthesizer import synthesize_memo
-from src.config import SAMPLE_DOCS_DIR
+from src.config import sample_doc_path
 from src.llm_client import LLMNotConfigured, active_provider_summary, check_provider_ready
 from src.orchestration.graph import run_extraction
 
@@ -55,7 +55,7 @@ def run_one_document(filename: str) -> dict | None:
                        f"[dim]({elapsed:.0f}s proteklo)[/dim]")
 
     with console.status("[cyan]Ucitavam i parsiram dokument...[/cyan]", spinner="dots") as status:
-        result = run_extraction(str(Path(SAMPLE_DOCS_DIR) / filename), on_progress=progress_cb)
+        result = run_extraction(str(sample_doc_path(filename)), on_progress=progress_cb)
 
     console.print(f"[dim]Gotovo za {time.monotonic() - start:.1f}s[/dim]")
 

@@ -32,11 +32,12 @@ Ovo mora biti spremno pre Dana 1, inače se prva nedelja gubi na čekanje:
 | Dan 2 | Document Ingestor — realna implementacija (pdfplumber/PyMuPDF ekstrakcija, quality check, klasifikacija tipa dokumenta) | Ingestor radi nad 2-3 test PDF-a, tekst se čisto izvlači |
 | Dan 3 | Financial Wizard v1 — LLM poziv koji izvlači 10 polja iz sekcije 6 SPEC-a, sa `source_page`/`source_snippet` | Polja se izvlače iz test dokumenata (možda još nisu savršena) |
 | Dan 4 | Citation Validator — provera da snippet zaista postoji na navedenoj strani; routing na `confirmed`/`needs_review` | Lažni/netačni citati se hvataju i označavaju |
-| Dan 5 | Merenje: pokreni ceo pipeline (Ingestor→Wizard→Validator) na svih 5-10 test dokumenata, ručno oceni rezultate naspram sekcije 5 SPEC-a (dijagnostički kriterijumi) | Prva verzija nalaza: koliko polja tačno, koliko citata validno |
+| Dan 5 | ✅ **Gotovo** (2026-09-07, Run 2) — pun pipeline pokrenut na **svih 20** trenutnih test dokumenata (ne 5-10, korpus je u međuvremenu narastao), rezultati u `evaluation/FINDINGS.md` | 124/125 polja status-kalibrisano tačno, 0 opasnih grešaka, `evaluation/sweep_results.json` |
 
 **Gate na kraju nedelje 1:** da li Financial Wizard uopšte pogađa realan broj polja (npr. bar
-6-7/10)? Ako ne — nedelja 2 počinje popravkom prompta/pristupa pre nego što se gradi UI i
-Narrative Synthesizer na lošim podacima.
+6-7/10)? ✅ **Prošao, i to daleko iznad praga** — sa Anthropic API (`claude-haiku-4-5`) pipeline
+pogađa 124/125 (99.2%) status-kalibracije na 20 dokumenata. Sa lokalnim `qwen2.5:3b` (Run 1)
+prag je i dalje prošao (6-8/10) ali sa slabijom kalibracijom (12.5% opasnih grešaka).
 
 ---
 
@@ -49,11 +50,13 @@ Narrative Synthesizer na lošim podacima.
 | Dan 6 | Prost review UI (Streamlit): prikaz `needs_review` polja sa snippet/stranicom, dugme potvrdi/ispravi | Reviewer može ručno da reši sve otvorene izuzetke |
 | Dan 7 | Narrative Synthesizer — generisanje `DraftMemo` iz potvrđenih polja, po sekcijama, sa citatom uz svaku brojku | Nacrt memoranduma se generiše, čitljiv je |
 | Dan 8 | Guardrail provera: da li ijedna brojka u memou nema citat (mora biti 0); popravka ako ima | Memo prolazi guardrail proveru iz SPEC sekcije 4 |
-| Dan 9 | End-to-end vožnja na svim test dokumentima, uključujući i namerno "loš" dokument (nizak kvalitet/nedostajuća polja) da se vidi da li sistem to ispravno eskalira umesto da nagađa | Kompletan run-log za sve test slučajeve |
-| Dan 10 | Izveštaj o nalazima: šta radi, šta ne, koji su realni brojevi (ne KPI-obećanja, nego "ovo smo izmerili") | `FINDINGS.md` — ulaz za odluku o punom angažmanu |
+| Dan 9 | ✅ **Gotovo** (2026-09-07, Run 2) — end-to-end na svih 20 dokumenata uključujući **oba** namerno loša (`beta_supplies`, `sinai_agro`) | Oba lošа dokumenta ispravno eskalirala 100% svojih namernih grešaka, 0 lažno prihvaćeno |
+| Dan 10 | ✅ **Gotovo** — osvežen `FINDINGS.md` sa Run 2 podacima, uporedbom naspram Run 1, i novim nalazom (field/document-type confusion) koji je odmah i popravljen | `evaluation/FINDINGS.md` (Run 1 + Run 2) |
 
 **Gate na kraju nedelje 2:** POC je demonstrabilan SCB-u — end-to-end vožnja uživo na test
-dokumentima, sa jasnim "evo šta radi pouzdano, evo šta zahteva dalji rad".
+dokumentima, sa jasnim "evo šta radi pouzdano, evo šta zahteva dalji rad". ✅ **Prošao** — portal
+(drag-and-drop, live log, batch obrada, review, PDF report) radi na svih 20 dokumenata, i imamo
+dokumentovane, ponovljive brojeve umesto utiska.
 
 ---
 

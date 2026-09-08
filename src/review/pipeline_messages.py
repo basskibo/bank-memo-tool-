@@ -83,11 +83,19 @@ def msg_ingest_start(filename: str) -> dict:
 def msg_ingest_done(document: IngestedDocument) -> dict:
     pages = len(document.pages)
     quality = "text is readable" if document.quality_ok else "quality issues detected"
+    message = (
+        f"Parsed {pages} page{'s' if pages != 1 else ''} · "
+        f"classified as {document.document_type.replace('_', ' ')} · {quality}"
+    )
+    if document.quality_notes:
+        # Puni razlog (npr. konkretna OCR/vision greška) — bez ovoga korisnik nema način da
+        # vidi ZAŠTO je dokument odbijen a da ne otvara terminal (SPEC.md 8.2 princip: razlog,
+        # ne samo "odbijeno").
+        message += f"\n\n{document.quality_notes}"
     return log_entry(
         STAGE_INGEST,
         "Document Ingestor",
-        f"Parsed {pages} page{'s' if pages != 1 else ''} · "
-        f"classified as {document.document_type.replace('_', ' ')} · {quality}",
+        message,
     )
 
 
@@ -234,7 +242,7 @@ PIPELINE_LOG_CSS = """
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em;
     text-transform: uppercase; color: #64707c; margin-bottom: 0.15rem;
 }
-.log-message { font-size: 0.88rem; color: #1a2430; line-height: 1.45; }
+.log-message { font-size: 0.88rem; color: #1a2430; line-height: 1.45; white-space: pre-wrap; }
 """
 
 

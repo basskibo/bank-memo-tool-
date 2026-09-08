@@ -33,9 +33,11 @@ onima koje SCB stvarno ima* — pre nego što se ugovorno obeća KPI iz proposal
 |---|---|---|
 | Credit Memo Agent + Risk Agent | **Samo Credit Memo Agent** | Risk Agent konzumira gotovu, odobrenu evidence bazu iz Credit Memo Agenta (proposal 3.3) — nema smisla graditi drugi agent pre nego što prvi radi |
 | 6 capability (Document Ingestor, Financial Wizard, Citation Validator, Conflict Resolver, Narrative Synthesizer, Industry Scanner) | **4 capability**: Document Ingestor, Financial Wizard, Citation Validator, Narrative Synthesizer | Conflict Resolver treba više dokumenata po slučaju da bi imao šta da poredi; Industry Scanner zavisi od eksternih data feed-ova koje SCB nije obezbedio (proposal 14 — out of scope i u punoj verziji) |
-| Bilingual EN/AR memo | **Samo engleski** | Arapski dodaje OCR/LLM kompleksnost i bilingual-consistency proveru; testira se odvojeno kad osnovni pipeline radi |
+| Bilingual EN/AR memo (izlaz Narrative Synthesizer-a) | **Samo engleski izlaz** | Generisanje memoranduma NA arapskom i bilingual-consistency provera ostaju van obima — ovo je odvojeno od OCR-a na ULAZU (red ispod), koji je sada delimično uključen |
+| OCR grana za skenirane/arapske ulazne dokumente | **Uključeno, implementirano** (pytesseract, `ara+eng`) | Proposal-ov top rizik (§16: "Arabic OCR accuracy on poor-quality documents") — vredi dokazati rano da li osnovni OCR+ekstrakcija pristup uopšte radi na arapskom skenu, pre nego što se ugovori KPI. Vidi 3.1.1 i sekciju 7 |
 | Pun platform layer (orkestracija, guardrails, human-in-loop, audit, observability, RAG, responsible AI — proposal sekcija 4) | **Minimalni podskup**: osnovna orkestracija (LangGraph), osnovni guardrails, prost review UI, prost log kao audit trag | Prometheus/Grafana/Instana/Keycloak/OpenShift su operativna infrastruktura — vredna tek kad ima šta da se posmatra u produkciji |
-| RAG nad credit policy + istorijskim dokumentima | **Izostavljeno** (ili minimalni demo ako SCB da uzorak policy dokumenta) | RAG je ulaz za Risk Agent (Policy Monitor), koji nije u POC obimu |
+| RAG nad credit policy korpusom | **Uključeno, minimalni demo** (mali sintetički policy korpus, planirano — vidi sekciju 9) | Pravi Policy Monitor (Risk Agent) i dalje van obima, ali proposal §16 navodi "Credit policy corpus incomplete or unstructured" kao rizik — vredi rano dokazati da chunking+embedding+retrieval uopšte pogađa relevantan pasus |
+| RAG nad istorijskim dokumentima klijenta | **Izostavljeno** | Ovo je "case/document history" deo proposal §5 — zahteva višedokumentnu istoriju po klijentu kroz vreme, van POC scope-a (isto obrazloženje kao Conflict Resolver ispod) |
 | Fine-tuning, AIOps pipeline, performance/penetration testing | **Izostavljeno** | Prerano — proposal sekcija 6 i 7 eksplicitno kažu da ovo dolazi posle osnovnog pipeline-a |
 | Angular frontend | **Prost review UI** (npr. Streamlit ili slična brza alatka) | Frontend izbor iz proposal-a (11) je produkcioni commitment prema SCB inženjeringu; POC ne menja tu odluku, samo je ne implementira dok se pristup ne dokaže |
 | Tim: 9 ljudi, 10 nedelja | **2–3 osobe, 2–3 nedelje** | Vidi PLAN.md |
@@ -62,14 +64,17 @@ menjanja postojećeg koda.
 |---|---|
 | **Ulaz** | Sirov fajl (PDF, eventualno slika/scan) |
 | **Izlaz** | `IngestedDocument`: lista stranica, za svaku stranicu ekstraktovan tekst (+ layout/blokovi ako je dostupno), tip dokumenta (klasifikacija), quality flag |
-| **Ponašanje** | Ako je dokument nečitljiv/nizak kvalitet → odbija se sa razlogom (ne pokušava OCR na neupotrebljivom ulazu — isto pravilo kao proposal 8.2) |
-| **POC pojednostavljenje** | Bez punog OCR-a (PaddleOCR) ako test dokumenti nisu skenirani — direktna ekstrakcija teksta iz PDF-a (pdfplumber/PyMuPDF). OCR grana se dodaje kad/ako testiramo skenirane dokumente. |
+| **Ponašanje** | Direktna ekstrakcija (pdfplumber) prvo; ako stranica nema izvlačiv text sloj (skenirana slika) → rasterizuje se i šalje na OCR. Ako ni OCR ne da dovoljno teksta (ili tesseract binary nije dostupan na sistemu) → dokument se odbija sa razlogom, ne pokušava se pogađanje sadržaja (isto pravilo kao proposal 8.2) |
+| **OCR grana** | Implementirano, **dva zamenljiva engine-a** birana preko `POC_OCR_ENGINE` (isti obrazac kao `POC_LLM_PROVIDER` u `llm_client.py`): `"tesseract"` (default, `pytesseract`, lang `ara+eng`) ili `"vision"` (rasterizovana stranica se šalje vizuelnom LLM-u preko Ollama, `OLLAMA_VISION_MODEL`, npr. `llama3.2-vision`, umesto klasičnom OCR-u). Stranica se rasterizuje preko PyMuPDF na 300 DPI za oba engine-a. `ocr_used` flag na `IngestedPage` beleži da li je stranica prošla kroz OCR (bilo koji engine). |
+| **Zašto "vision" engine postoji** | Empirijski nalaz (`evaluation/FINDINGS.md`, "Vision-LLM alternative"): ni Tesseract ni PaddleOCR ne čitaju pouzdano istočno-arapske (Indic) cifre koje realni egipatski dokumenti stvarno koriste u finansijskim tabelama, dok vizuelni LLM istu stranu čita tačno. `"vision"` grana nije zamena za produkcioni OCR izbor — to je isti test princip kao ostatak POC-a (izoluj rizičnu pretpostavku, izmeri je), primenjen na alternativu koju je vredno formalno oceniti. |
+| **POC odstupanje od proposal-a** | Proposal §11 traži **PaddleOCR** kao production OCR engine. POC default ostaje **Tesseract/pytesseract** (jedan apt paket + jezički paket, bez GPU/framework zavisnosti) — `"vision"` je dodatna, eksplicitno birana opcija za testiranje alternative, ne zamena default-a. Ovo NE menja agreed tech stack za produkciju (proposal §11 ostaje PaddleOCR, uz preporuku da se vision-LLM opcija formalno evaluira — vidi FINDINGS.md follow-up #7) — isti obrazac odstupanja kao ostala POC pojednostavljenja u sekciji 8. |
 
 ```python
 class IngestedPage(BaseModel):
     page_number: int
     text: str
     source_file: str
+    ocr_used: bool = False      # True ako je tekst dobijen OCR granom, ne direktnom ekstrakcijom
 
 class IngestedDocument(BaseModel):
     document_id: str
@@ -229,6 +234,14 @@ bilans stanja, šta je "loan application") je modelovana po standardnoj bankarsk
 najvažniji sledeći korak posle inicijalnog POC-a, jer sintetička dokumenta ne mogu testirati
 stvarnu varijabilnost (format SCB-a, arapski OCR, loš skener kvalitet, itd.).
 
+**Skenirani arapski dokumenti (OCR test set):** `generate_arabic_scanned_docs.py` generiše dva
+image-only PDF-a (bez text sloja — pravi PDF-a rasterizovan preko PIL-a, arapski tekst kroz
+`arabic_reshaper`/`python-bidi`, sa blagom "skener" degradacijom — rotacija, blur, šum) za istu
+kompaniju kao clean engleski set (`nile_delta_foods`, FY2024 brojke): finansijski izveštaj i loan
+application, ovoga puta kao da je klijent dostavio arapsku skeniranu kopiju. Namerna veza — isti
+klijent, isti brojevi, drugi kanal dostave — daje direktno uporedivu proveru: da li OCR→ekstrakcija
+pristup na skenu pogađa iste vrednosti kao direktna ekstrakcija na digitalnom engleskom PDF-u.
+
 ---
 
 ## 8. Tech stack za POC
@@ -236,8 +249,9 @@ stvarnu varijabilnost (format SCB-a, arapski OCR, loš skener kvalitet, itd.).
 | Sloj | Puna produkcija (proposal 11) | POC |
 |---|---|---|
 | Orkestracija | LangGraph | **LangGraph** (isto — ovo se ionako testira) |
-| Document parsing | PaddleOCR + pdfplumber/PyMuPDF | **pdfplumber/PyMuPDF** (OCR grana dodaje se samo ako testiramo skenove) |
+| Document parsing | PaddleOCR + pdfplumber/PyMuPDF | **pdfplumber/PyMuPDF** + **pytesseract** (`ara+eng`) OCR grana za skenirane/arapske dokumente — vidi 3.1.1 za obrazloženje odstupanja od PaddleOCR |
 | LLM runtime | vLLM (prod) / Ollama (dev) | **Konfigurabilno preko `POC_LLM_PROVIDER`** — Ollama (mrežni server, npr. `qwen2.5:3b`) ili Anthropic API, isti `complete_json()` interfejs za oba (`src/llm_client.py`) |
+| Search i RAG | OpenSearch (vector + hybrid retrieval) | **Lokalni vector store za minimalni demo** (npr. Chroma/FAISS in-memory) nad malim sintetičkim policy korpusom — planirano, vidi sekciju 9 |
 | Baza/storage | Oracle, Nutanix Object Store | **Lokalni fajlovi / SQLite** za POC |
 | Review UI | Angular | **Streamlit ili ekvivalent** (brzo, jednokratno) |
 | Auth, monitoring, CI/CD | Keycloak, Prometheus/Grafana/Instana, OpenShift | **Izostavljeno** |
@@ -247,16 +261,46 @@ produkciju.
 
 ---
 
-## 9. Eksplicitno van obima POC-a
+## 9. RAG — minimalni demo (dodato u POC obim)
 
-Pored svega već pomenutog: Risk Agent, RAG, fine-tuning, bilingual (AR), Conflict Resolver,
-Industry Scanner, AIOps pipeline, performance/security testing, bilo kakva integracija sa SCB
-sistemima. Sve ovo ostaje u punom proposal-u i gradi se tek posle POC faze, po planu iz PLAN.md i
-punog proposal-a (sekcija 12).
+Proposal §16 (Risks and Mitigation) navodi "Credit policy corpus incomplete or unstructured" kao
+rizik za retrieval kvalitet, i §5 traži chunking podešen posebno za arapski i za engleski tekst.
+POC namerno ne gradi pravi Policy Monitor (to je Risk Agent capability, i dalje van obima — vidi
+sekciju 10), ali dodaje **minimalan, izolovan RAG demo** da rano proveri da li osnovni
+chunking→embedding→retrieval pristup uopšte pogađa relevantan pasus na malom, sintetičkom policy
+korpusu (par fiktivnih SCB kreditnih politika, EN + AR) — isti princip kao ostatak POC-a: testiraj
+rizičnu pretpostavku izolovano pre nego što se gradi ceo agent oko nje.
+
+| | |
+|---|---|
+| **Ulaz** | Mali sintetički korpus (5-10 kratkih fiktivnih "policy" dokumenata, EN + AR) |
+| **Chunking** | Fiksna veličina pasusa (npr. 300-500 karaktera, sa overlap-om), odvojeno podešeno za EN i AR tekst (proposal §5 zahtev) |
+| **Embedding + retrieval** | Lokalni embedding model + lokalni vector store (npr. Chroma/FAISS) umesto OpenSearch (proposal §11) — isti obrazac odstupanja kao ostatak sekcije 8: production izbor se ne menja, POC ne implementira operativnu infrastrukturu dok se pristup ne dokaže |
+| **Izlaz** | Top-k relevantnih pasusa za dati upit, sa citatom (koji dokument, koji chunk) — ista "nothing without evidence" disciplina kao Citation Validator (3.1.3) |
+| **Šta se NE gradi** | Pravi Policy Monitor capability, integracija sa Risk Agent-om, pravi SCB policy korpus, evaluacija retrieval preciznosti na skali (proposal 9.3 KPI "Retrieval precision ≥90%" nije POC cilj — korpus je namerno premali da bude statistički smislen, isti princip kao sekcija 5) |
+| **Status** | Planirano — sledeća stavka posle OCR grane (vidi PLAN.md) |
+
+**Zašto ovo ulazi u POC obim a pun Risk Agent ne:** RAG chunking/retrieval je samostalno testabilan
+mehanizam (daj upit, proveri da li se vrati tačan pasus) bez potrebe da prvo postoji ceo Risk Agent
+oko njega — isti princip kao što je Document Ingestor testabilan nezavisno od Financial Wizard-a.
+Ovo NIJE isto što i "graditi Risk Agent" — Policy Monitor (koji bi koristio ovaj RAG u produkciji)
+i ostale Risk Agent capability i dalje ostaju van obima.
 
 ---
 
-## 10. Kako se ovaj dokument koristi
+## 10. Eksplicitno van obima POC-a
+
+Pored svega već pomenutog: Risk Agent (uključujući Policy Monitor — RAG demo iz sekcije 9 je
+izolovan test mehanizma, ne Risk Agent capability), fine-tuning, bilingual memo **izlaz** (AR),
+Conflict Resolver, Industry Scanner, AIOps pipeline, performance/security testing, bilo kakva
+integracija sa SCB sistemima. Pun OCR pipeline (produkciona PaddleOCR infrastruktura, batch
+skeniranje) takođe ostaje van obima — POC dokazuje samo da osnovni OCR→ekstrakcija pristup radi na
+malom uzorku, ne operativnu OCR infrastrukturu. Sve ovo ostaje u punom proposal-u i gradi se tek
+posle POC faze, po planu iz PLAN.md i punog proposal-a (sekcija 12).
+
+---
+
+## 11. Kako se ovaj dokument koristi
 
 - Svaka nova capability, polje, guardrail ili acceptance kriterijum se **prvo dodaje ovde**, pa
   tek onda u kod.

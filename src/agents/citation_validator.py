@@ -29,7 +29,13 @@ def validate_citations(
             on_field(field.field_name, i, total)
         page_text = pages_by_number.get(field.source_page)
 
-        if page_text is None:
+        if not field.value.strip():
+            field.status = "needs_review"
+            field.validation_note = (
+                (field.validation_note + " " if field.validation_note else "")
+                + "[citation_validator] value is empty — cannot be confirmed regardless of citation"
+            )
+        elif page_text is None:
             field.status = "needs_review"
             field.validation_note = (
                 f"[citation_validator] source_page {field.source_page} does not exist in document"

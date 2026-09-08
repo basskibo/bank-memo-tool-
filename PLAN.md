@@ -60,7 +60,26 @@ dokumentovane, ponovljive brojeve umesto utiska.
 
 ---
 
-## Nedelja 3 (opciono, bafer) — Polish i realni dokumenti
+## Nedelja 3 — OCR + RAG (nova stavka, dodata posle inicijalnog POC-a)
+
+Originalni 2-nedeljni POC (Nedelja 1-2 gore) je završen i oba gate-a su prošla. Sledeće dve stavke
+nisu bile u originalnom obimu, ali su dodate jer direktno testiraju dva rizika koja proposal sam
+navodi (§16 risk tabela): "Arabic OCR accuracy on poor-quality documents" i "Credit policy corpus
+incomplete or unstructured". Vidi SPEC.md sekcije 3.1.1 i 9 za pun kontekst i obrazloženje.
+
+| Dan | Fokus | Deliverable | Status |
+|---|---|---|---|
+| Dan 11 | OCR grana za skenirane/arapske dokumente — sintetički skenirani arapski test set modelovan po realnom EGX dokumentu, sa **autentičnim istočno-arapskim ciframa** (`sample_docs/generate_arabic_scanned_docs.py`) + OCR fallback u Document Ingestor-u (`pytesseract`, lang `ara+eng`, rasterizacija preko PyMuPDF) | ✅ **Implementirano i verifikovano end-to-end** (2026-09-08) — pun test suite (16 passed, 2 xfailed — namerno, dokumentovan nalaz). **Ključni nalaz:** Tesseract-ov `ara` model ne čita pouzdano istočno-arapske (Indic) cifre koje realni egipatski dokumenti stvarno koriste u finansijskim tabelama (izolovano od fonta/layout-a — isti test sa zapadnim ciframa prolazi 100%). **PaddleOCR provereno preko Docker-a (starija `paddleocr==2.7.3`/`paddlepaddle==2.6.2` kombinacija — novija 3.x kombinacija ima svoj bag, dokumentovano) — potvrđuje isti obrazac: zapadne cifre čita, istočno-arapske ne.** Dva nezavisna OCR engine-a, ista mana — rizik je stvaran, ne specifičan za jedan alat. **Najbolji nalaz dana:** vision-LLM (ista porodica modela već korišćena za Financial Wizard) čita identičnu sliku sa 100% tačnošću, bez OCR-a uopšte — najjača kandidat-preporuka za produkciju (self-hosted vizuelni model, npr. Qwen2-VL preko vLLM, u skladu sa proposal §11). Pun nalaz i preporuke: `evaluation/FINDINGS.md` "OCR / Arabic scanned documents" |
+| Dan 11b | Vision-LLM OCR engine ugrađen u Document Ingestor kao ravnopravna alternativa Tesseract-u, birana preko `POC_OCR_ENGINE=vision` (`OLLAMA_VISION_MODEL`, npr. `llama3.2-vision` preko mrežnog Ollama servera) | ✅ **Implementirano** (2026-09-08) — `document_ingestor.py` rasterizuje stranicu i šalje je modelu preko Ollama `/api/chat` (isti obrazac kao `POC_LLM_PROVIDER` u `llm_client.py`). Mockovani testovi (2 nova, i uspeh i graceful fallback bez servera) prolaze — 16 passed, 2 xfailed. **Živa verifikacija sa pravim `llama3.2-vision` modelom čeka korisnika** — ovaj dev environment ne može da dosegne mrežni Ollama server (`mcs02.cmu`) sa kog se model povlači, pa krajnja tačnost nije potvrđena van mock-a |
+| Dan 12 | RAG minimalni demo — chunking + embedding + retrieval nad malim sintetičkim policy korpusom (EN + AR), sa citatom uz svaki vraćeni pasus (SPEC.md sekcija 9) | ⏳ **Planirano, sledeće** |
+
+**Zašto sada:** proposal sam identifikuje ova dva kao top rizike (§16), a POC-ov princip je da se
+rizične pretpostavke dokazuju rano i izolovano (SPEC.md sekcija 1) — isti pristup kao originalni
+Dan 1-10, samo primenjen na dve nove, eksplicitno odobrene stavke obima.
+
+---
+
+## Nedelja 4 (opciono, bafer) — Polish i realni dokumenti
 
 Aktivira se samo ako: (a) nedelja 1-2 pokažu ozbiljne probleme koje vredi ispraviti pre
 prezentacije, ili (b) SCB u međuvremenu dostavi realne dokumente pa ih vredi odmah testirati.
@@ -73,10 +92,12 @@ prezentacije, ili (b) SCB u međuvremenu dostavi realne dokumente pa ih vredi od
 
 ## Šta POC NE pokušava da reši (podsetnik iz SPEC-a)
 
-Ne gradimo Risk Agent, RAG, bilingual, fine-tuning, punu platformu. Ako se tokom rada pojavi
-iskušenje da se nešto od ovoga "brzo doda" — ne radi se dok se prvo ne doda u SPEC.md sa
-obrazloženjem. Ovo je namerna disciplina protiv scope creep-a, ista logika kao u internoj
-pregovaračkoj tabeli (nedefinisan plafon = beskonačan posao).
+Ne gradimo Risk Agent, fine-tuning, bilingual memo **izlaz** (AR), punu platformu, ni produkcionu
+OCR/RAG infrastrukturu. Minimalni OCR i RAG demo (Nedelja 3 gore, SPEC.md sekcije 3.1.1 i 9) su
+namerni izuzeci od ovog pravila — dodati u obim jer direktno testiraju proposal-ove sopstvene top
+rizike (§16), ne scope creep. Ako se tokom rada pojavi iskušenje da se doda bilo šta drugo van
+onoga što je već u SPEC.md — ne radi se dok se prvo ne doda tamo sa obrazloženjem. Ista disciplina
+kao u internoj pregovaračkoj tabeli (nedefinisan plafon = beskonačan posao).
 
 ---
 
@@ -89,4 +110,6 @@ angažmanu i pregovorima sa SCB:
 2. **Koji KPI brojevi iz proposal sekcije 9.1 su realni**, na osnovu onoga što je izmereno — i pod
    kojim uslovima (kvalitet dokumenata, obim polja definisan u SPEC 6 vs. širi obim)
 3. **Šta nedostaje da POC postane produkcioni scope** (najverovatnije: realni SCB dokumenti, širi
-   skup polja, OCR grana za skenove, Conflict Resolver, RAG, Risk Agent)
+   skup polja, produkciona OCR infrastruktura — PaddleOCR umesto POC-ovog pytesseract, pravi
+   Policy Monitor/RAG na stvarnom SCB policy korpusu umesto POC-ovog sintetičkog, Conflict
+   Resolver, Risk Agent)

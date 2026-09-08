@@ -70,3 +70,32 @@ Ground truth: [`../evaluation/ground_truth.md`](../evaluation/ground_truth.md)
 Svaka “čista” firma ima: FY2023 + FY2024 finansijske izveštaje + loan application (3 PDF-a).
 
 **Ukupno: 20 PDF dokumenata u 7 foldera.**
+
+---
+
+## Set 8 — Skenirani arapski dokumenti (OCR test set)
+
+Generisano skriptom [`generate_arabic_scanned_docs.py`](generate_arabic_scanned_docs.py) — za
+razliku od svih dokumenata gore (pravi tekst-PDF preko reportlab-a), ovi su **image-only PDF-ovi
+bez text sloja**: stranica je iscrtana kao slika (PIL, arapski tekst kroz
+`arabic_reshaper`/`python-bidi` za ispravno oblikovanje i RTL redosled), pa blago degradirana
+(rotacija/blur/šum) da liči na stvaran skener, i tek onda upakovana u PDF. `pdfplumber`/`PyMuPDF`
+ne mogu izvući tekst direktno — mora OCR (`pytesseract`, `ara+eng`), vidi SPEC.md 3.1.1.
+
+| Fajl | Šta predstavlja |
+|---|---|
+| `nile_delta_foods/nile_delta_foods_financial_statements_fy2024_arabic_scan.pdf` | Isti FY2024 finansijski izveštaj kao clean engleski set, ovoga puta kao arapska skenirana kopija |
+| `nile_delta_foods/nile_delta_foods_loan_application_arabic_scan.pdf` | Isti loan application, na arapskom, skeniran |
+
+Namerna veza sa `nile_delta_foods/` clean setom (ista kompanija, isti brojevi) — daje direktno
+uporedivu proveru: da li OCR→ekstrakcija pristup na skenu pogađa iste vrednosti kao direktna
+ekstrakcija na digitalnom engleskom PDF-u.
+
+**Zahteva sistemski `tesseract-ocr` + `tesseract-ocr-ara` paket** (nije Python zavisnost):
+
+```bash
+sudo apt install tesseract-ocr tesseract-ocr-ara
+```
+
+Bez ovoga, Document Ingestor i dalje ne pada — vraća jasan razlog u `quality_notes` umesto da
+pogađa sadržaj (SPEC.md 8.2 princip).

@@ -356,7 +356,7 @@ def generate_legacy_acme() -> None:
     t2.setStyle(legacy_style)
     story.append(t2)
     story.append(Spacer(1, 16))
-    story.append(Paragraph("Notes on Existing Bank Facilities", h2))
+    story.append(Paragraph("Notes on Existing Bank Facilities", h2))  
     story.append(Paragraph(
         "Acme Trading LLC maintains an existing overdraft facility of USD 500,000 with National "
         "Bank, utilized at approximately 60% as of the statement date. No other outstanding "

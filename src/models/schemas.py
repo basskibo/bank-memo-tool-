@@ -30,6 +30,7 @@ class IngestedPage(BaseModel):
     page_number: int
     text: str
     source_file: str
+    ocr_used: bool = False  # True ako je tekst dobijen OCR granom (SPEC.md 3.1.1), ne direktnom ekstrakcijom
 
 
 class IngestedDocument(BaseModel):

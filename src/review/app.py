@@ -43,6 +43,7 @@ from src.review.pipeline_messages import (
     pipeline_progress,
     render_live_pipeline_log,
 )
+from src.review.processing_animation import render_processing_animation_html
 
 _REVIEW_DIR = Path(__file__).resolve().parent
 SCB_LOGO_PATH = _REVIEW_DIR / "assets" / "scb_logo.svg"
@@ -569,6 +570,18 @@ def _pipeline_log_label(log: list[dict]) -> str:
     return "Pipeline log"
 
 
+@st.fragment(run_every=2)
+def _processing_visual_fragment(doc_id: str) -> None:
+    """Lottie + phase caption — refreshed every 2s to avoid flicker from the log poll."""
+    if not _is_processing(doc_id):
+        return
+    log = st.session_state.runs[doc_id].setdefault("progress_log", [])
+    st.html(
+        render_processing_animation_html(log, animation_id=f"proc-lottie-{doc_id}"),
+        unsafe_allow_javascript=True,
+    )
+
+
 @st.fragment(run_every=0.5)
 def _processing_log_fragment(doc_id: str) -> None:
     """Refresh log/progress in-place — avoids full-page rerun every few hundred ms."""
@@ -819,6 +832,7 @@ if st.session_state.batch_pending_ids is not None:
         _start_background_processing(next_id)
 
     if _is_processing(next_id):
+        _processing_visual_fragment(next_id)
         _processing_log_fragment(next_id)
     else:
         shared = st.session_state.get("proc_shared")
@@ -897,6 +911,18 @@ def render_overview_tab(doc_ids: list[str]) -> None:
     m2.metric("Ready for memo", ready)
     m3.metric("Memo ready", done)
 
+    pending_ids = [d for d in doc_ids if st.session_state.runs[d]["fields"] is None]
+    if pending_ids:
+        batch_running = st.session_state.batch_pending_ids is not None
+        if st.button(
+            f":material/play_arrow: Process all pending ({len(pending_ids)})",
+            type="primary",
+            disabled=_is_processing() or batch_running,
+            key="overview_process_all_pending",
+        ):
+            st.session_state.batch_pending_ids = list(pending_ids)
+            st.rerun()
+
     processed_ids = [d for d in doc_ids if st.session_state.runs[d]["fields"] is not None]
     st.divider()
     st.markdown("#### Overall result")
@@ -937,6 +963,7 @@ def render_document_detail(doc_id: str) -> None:
         if is_processing:
             if st.session_state.proc_thread is None:
                 _start_background_processing(doc_id)
+            _processing_visual_fragment(doc_id)
             _processing_log_fragment(doc_id)
         else:
             with st.expander(

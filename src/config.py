@@ -21,6 +21,12 @@ OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 LLM_MODEL = os.environ.get("POC_LLM_MODEL", "claude-haiku-4-5-20251001")
 
+# OCR engine za stranice bez izvlačivog text sloja (SPEC.md 3.1.1) — "tesseract" (default,
+# pytesseract) ili "vision" (rasterizovana stranica se šalje vizuelnom LLM-u preko Ollama umesto
+# klasičnom OCR-u — vidi evaluation/FINDINGS.md "Vision-LLM alternative" za zašto).
+OCR_ENGINE = os.environ.get("POC_OCR_ENGINE", "tesseract").strip().lower()
+OLLAMA_VISION_MODEL = os.environ.get("OLLAMA_VISION_MODEL", "llama3.2-vision")
+
 SAMPLE_DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "sample_docs")
 
 

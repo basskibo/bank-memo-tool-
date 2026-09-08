@@ -14,8 +14,15 @@ from langgraph.graph import END, StateGraph
 from src.agents.citation_validator import validate_citations
 from src.agents.document_ingestor import ingest_document
 from src.agents.financial_wizard import extract_fields
+from src.config import OCR_ENGINE
 from src.models.schemas import ExtractedField, IngestedDocument
-from src.review.pipeline_messages import msg_ingest_done, msg_validate_done, msg_validate_field, msg_validate_start
+from src.review.pipeline_messages import (
+    msg_ingest_done,
+    msg_ingest_ocr_page,
+    msg_validate_done,
+    msg_validate_field,
+    msg_validate_start,
+)
 
 
 class PipelineState(TypedDict):
@@ -29,9 +36,14 @@ class PipelineState(TypedDict):
 
 
 def node_ingest(state: PipelineState) -> PipelineState:
+    on_log = state.get("on_log")
+
+    def on_page_ocr(i: int, total: int) -> None:
+        if on_log:
+            on_log(msg_ingest_ocr_page(i, total, OCR_ENGINE))
+
     try:
-        document = ingest_document(state["file_path"])
-        on_log = state.get("on_log")
+        document = ingest_document(state["file_path"], on_page_ocr=on_page_ocr)
         if on_log:
             on_log(msg_ingest_done(document))
         return {**state, "document": document}

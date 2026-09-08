@@ -80,6 +80,17 @@ def msg_ingest_start(filename: str) -> dict:
     )
 
 
+def msg_ingest_ocr_page(i: int, total: int, engine: str) -> dict:
+    engine_label = "vizuelni LLM (Ollama)" if engine == "vision" else "Tesseract"
+    slow_hint = " — CPU-only vizuelni modeli mogu biti spori, minuti po strani" if engine == "vision" else ""
+    return log_entry(
+        STAGE_INGEST,
+        "Document Ingestor",
+        f"OCR strana {i}/{total} preko {engine_label}{slow_hint}",
+        step=f"{i}/{total}",
+    )
+
+
 def msg_ingest_done(document: IngestedDocument) -> dict:
     pages = len(document.pages)
     quality = "text is readable" if document.quality_ok else "quality issues detected"

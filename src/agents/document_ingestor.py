@@ -18,6 +18,7 @@ se pogađanje sadržaja kad ni OCR ne pomaže.
 """
 import uuid
 from pathlib import Path
+from typing import Callable
 
 import pdfplumber
 import pymupdf
@@ -145,7 +146,14 @@ def _ocr_page_vision(image: Image.Image, page_number: int) -> tuple[str, str | N
     return text, None
 
 
-def ingest_document(file_path: str | Path) -> IngestedDocument:
+def ingest_document(
+    file_path: str | Path,
+    on_page_ocr: Callable[[int, int], None] | None = None,
+) -> IngestedDocument:
+    """`on_page_ocr(i, total)` se zove neposredno pre pokušaja OCR-a nad stranom `i` (od ukupno
+    `total`) — jedini način da UI pokaže granularniji napredak dok traje spor CPU-only vision
+    poziv, pošto sam ingest korak inače broji kao jedan neprozirni makro-korak (SPEC.md nema
+    zahtev za ovo, čisto UX)."""
     file_path = Path(file_path)
     if not file_path.exists():
         raise FileNotFoundError(f"Document not found: {file_path}")
@@ -156,10 +164,13 @@ def ingest_document(file_path: str | Path) -> IngestedDocument:
     warned_bad_engine = False  # upozori samo jednom po dokumentu, ne po strani
 
     with pdfplumber.open(file_path) as pdf:
+        total_pages = len(pdf.pages)
         for i, page in enumerate(pdf.pages, start=1):
             text = page.extract_text() or ""
             ocr_used = False
             if len(text.strip()) < MIN_CHARS_TO_SKIP_OCR:
+                if on_page_ocr:
+                    on_page_ocr(i, total_pages)
                 if ocr_doc is None:
                     ocr_doc = pymupdf.open(file_path)
                 try:

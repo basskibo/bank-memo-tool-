@@ -28,9 +28,14 @@ def test_scanned_arabic_document_has_no_extractable_text_layer():
     assert text.strip() == ""
 
 
-def test_missing_ocr_binary_rejects_gracefully_not_crash():
+def test_missing_ocr_binary_rejects_gracefully_not_crash(monkeypatch):
     """I bez tesseract-a instaliranog, ingest_document ne sme da baci exception — mora da vrati
-    jasan razlog u quality_notes (SPEC.md 8.2 princip: ne pogađaj sadržaj)."""
+    jasan razlog u quality_notes (SPEC.md 8.2 princip: ne pogađaj sadržaj).
+
+    Namerno fiksira OCR_ENGINE na 'tesseract' bez obzira na ambijentalni .env (regresija
+    2026-09-08: ovaj test je pokušavao pravi mrežni poziv i čekao pun timeout kad je neko lokalno
+    promenio POC_OCR_ENGINE=vision u .env — testovi ne smeju zavisiti od tuđe .env konfiguracije)."""
+    monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "tesseract")
     doc = ingest_document(sample_doc_path(FS_DOC))
     if not TESSERACT_AVAILABLE:
         assert doc.quality_ok is False
@@ -49,7 +54,8 @@ def test_missing_ocr_binary_rejects_gracefully_not_crash():
     ),
     strict=False,
 )
-def test_ocr_extracts_arabic_financial_statement():
+def test_ocr_extracts_arabic_financial_statement(monkeypatch):
+    monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "tesseract")
     doc = ingest_document(sample_doc_path(FS_DOC))
     assert doc.quality_ok is True
     assert doc.pages[0].ocr_used is True
@@ -58,11 +64,12 @@ def test_ocr_extracts_arabic_financial_statement():
 
 @pytest.mark.skipif(not TESSERACT_AVAILABLE, reason="tesseract-ocr nije instaliran na sistemu")
 @pytest.mark.xfail(reason="Isti poznat nalaz kao test_ocr_extracts_arabic_financial_statement — vidi FINDINGS.md.", strict=False)
-def test_ocr_extracts_arabic_loan_application_amounts():
+def test_ocr_extracts_arabic_loan_application_amounts(monkeypatch):
     """document_type klasifikacija NIJE ovde proverena namerno — empirijski nalaz (vidi
     evaluation/FINDINGS.md): naslovi/labele u arapskom OCR tekstu su dovoljno izobličeni da
     substring-based klasifikacija promaši (Tesseract povremeno pogrešno detektuje RTL smer na
     kraćim naslovnim linijama)."""
+    monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "tesseract")
     doc = ingest_document(sample_doc_path(LOAN_DOC))
     assert doc.quality_ok is True
     assert doc.pages[0].ocr_used is True

@@ -1025,6 +1025,19 @@ def render_document_detail(doc_id: str) -> None:
     m1.metric("Confirmed fields", len(confirmed))
     m2.metric("Needs review", len(needs_review))
 
+    if document is not None:
+        # Uvek vidljivo, čak i kad je fields prazno (0 confirmed / 0 needs_review) — bez ovoga
+        # dijagnoza "šta je OCR stvarno pročitao" zahteva terminal i ingest_document poziv izvan
+        # UI-ja, što smo više puta radili uživo pri debug-ovanju vision OCR grane 2026-09-08.
+        with st.expander(":material/text_snippet: Show extracted text (per page, debug)"):
+            if document.quality_notes:
+                st.caption(document.quality_notes)
+            for p in document.pages:
+                label = f"Page {p.page_number}" + (" · OCR" if p.ocr_used else "")
+                st.markdown(f"**{label}** ({len(p.text)} chars)")
+                shown = p.text[:3000]
+                st.text(shown + ("…" if len(p.text) > 3000 else "") or "(empty)")
+
     if fields:
         df = pd.DataFrame([
             {

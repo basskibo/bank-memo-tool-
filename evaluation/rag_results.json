@@ -1,0 +1,437 @@
+{
+  "top_k": 3,
+  "n": 13,
+  "rank1_correct": 13,
+  "doc_in_topk": 13,
+  "results": [
+    {
+      "query": "What is the maximum tenor for an SME working capital facility?",
+      "lang": "en",
+      "expect_doc_id": "en_sme_lending",
+      "rank1_doc": "en_sme_lending",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "en_sme_lending",
+          "chunk_id": "en_sme_lending#0",
+          "lang": "en",
+          "text": "# SME Lending Standards (SYNTHETIC — not real SCB policy) ## Tenor limits SME working-capital facilities are granted for a maximum tenor of 36 months, renewable on annual review. SME term loans for capital expenditure may run up to 84 months including a grace period that must not exceed 12 months. Overdraft and revolving facilities are uncommitted and reviewed at least once every 12 months. ## Facility size The total SME exposure to a single",
+          "score": 0.651
+        },
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#2",
+          "lang": "ar",
+          "text": "صعيد إلى لجنة الائتمان بالمركز الرئيسي. وتتطلب التسهيلات التي تزيد على 20,000,000 جنيه مصري قوائم مالية مدققة لسنتين ماليتين. ## الحد الأدنى للتسعير تُسعَّر تسهيلات الشركات الصغيرة والمتوسطة بحد أدنى قدره سعر البنك المركزي المصري مضافاً إليه 300 نقطة أساس. وأي تسعير دون هذا الحد يُعد استثناءً يتطلب موافقة لجنة الائتمان ويُوثَّق في ملف العميل.",
+          "score": 0.5159
+        },
+        {
+          "doc_id": "en_sme_lending",
+          "chunk_id": "en_sme_lending#1",
+          "lang": "en",
+          "text": "eviewed at least once every 12 months. ## Facility size The total SME exposure to a single obligor group must not exceed EGP 50,000,000 without escalation to the Head-Office Credit Committee. Facilities above EGP 20,000,000 require two years of audited financial statements. ## Pricing floor SME facilities are priced at a minimum of the Central Bank of Egypt corridor rate plus 300 basis points. Any pricing below this floor is an exception",
+          "score": 0.513
+        }
+      ]
+    },
+    {
+      "query": "How many years of audited financials are required above EGP 20 million?",
+      "lang": "en",
+      "expect_doc_id": "en_sme_lending",
+      "rank1_doc": "en_sme_lending",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "en_sme_lending",
+          "chunk_id": "en_sme_lending#1",
+          "lang": "en",
+          "text": "eviewed at least once every 12 months. ## Facility size The total SME exposure to a single obligor group must not exceed EGP 50,000,000 without escalation to the Head-Office Credit Committee. Facilities above EGP 20,000,000 require two years of audited financial statements. ## Pricing floor SME facilities are priced at a minimum of the Central Bank of Egypt corridor rate plus 300 basis points. Any pricing below this floor is an exception",
+          "score": 0.594
+        },
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#1",
+          "lang": "ar",
+          "text": "ى لنسبة التمويل إلى القيمة 80%. ويجب ألا يزيد عمر التقييم على 12 شهراً عند السحب، وأن يُجريه مُقيِّم مُدرَج على قائمة المُقيِّمين المعتمدين لدى البنك. ## الضمان المنقول تُقبل الآلات والمعدات بحد أقصى 50% من صافي القيمة الدفترية أو 40% من قيمة البيع الجبري، أيهما أقل. ويُقبل المخزون المرهون برهن حيازي عائم بحد أقصى 40% من الأقل بين التكلفة وصافي",
+          "score": 0.5891
+        },
+        {
+          "doc_id": "en_credit_risk_ratios",
+          "chunk_id": "en_credit_risk_ratios#2",
+          "lang": "en",
+          "text": "st cover The interest coverage ratio (EBIT over finance costs) must be at least 2.0 times. A borrower whose interest cover falls below 1.5 times during the life of the facility is placed on the watch list and reviewed quarterly.",
+          "score": 0.5738
+        }
+      ]
+    },
+    {
+      "query": "What is the loan-to-value limit for commercial real estate collateral?",
+      "lang": "en",
+      "expect_doc_id": "en_collateral_ltv",
+      "rank1_doc": "en_collateral_ltv",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "en_collateral_ltv",
+          "chunk_id": "en_collateral_ltv#0",
+          "lang": "en",
+          "text": "# Collateral and Loan-to-Value Rules (SYNTHETIC — not real SCB policy) ## Real-estate collateral For commercial real estate pledged as primary collateral, the maximum loan-to-value ratio is 70% of the market value in a current independent valuation. For residential property the maximum loan-to-value ratio is 80%. Valuations must be no older than 12 months at drawdown and must be performed by a valuer on the bank's approved panel. ## Movable",
+          "score": 0.8431
+        },
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#0",
+          "lang": "ar",
+          "text": "# قواعد الضمانات ونسبة التمويل إلى القيمة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## الضمان العقاري بالنسبة للعقارات التجارية المرهونة كضمان أساسي، يبلغ الحد الأقصى لنسبة التمويل إلى القيمة 70% من القيمة السوقية وفق تقييم مستقل حديث. وبالنسبة للعقارات السكنية يبلغ الحد الأقصى لنسبة التمويل إلى القيمة 80%. ويجب ألا يزيد عمر التقييم على 12 شهراً",
+          "score": 0.7737
+        },
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#0",
+          "lang": "ar",
+          "text": "# معايير إقراض الشركات الصغيرة والمتوسطة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## مدة التسهيل تُمنح تسهيلات رأس المال العامل للشركات الصغيرة والمتوسطة لمدة أقصاها 36 شهراً، قابلة للتجديد عند المراجعة السنوية. أما القروض لأجل لأغراض الإنفاق الرأسمالي فيجوز أن تصل مدتها إلى 84 شهراً، بما في ذلك فترة سماح لا تتجاوز 12 شهراً. وتُراجع تسهيلات",
+          "score": 0.6106
+        }
+      ]
+    },
+    {
+      "query": "What coverage ratio is required for inventory pledged under a floating charge?",
+      "lang": "en",
+      "expect_doc_id": "en_collateral_ltv",
+      "rank1_doc": "en_collateral_ltv",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "en_collateral_ltv",
+          "chunk_id": "en_collateral_ltv#1",
+          "lang": "en",
+          "text": "ths at drawdown and must be performed by a valuer on the bank's approved panel. ## Movable collateral Machinery and equipment are accepted at a maximum of 50% of net book value or 40% of forced- sale value, whichever is lower. Inventory pledged under a floating charge is accepted at a maximum of 40% of the lower of cost and net realisable value, and requires a minimum coverage ratio of 1.5 times the outstanding facility. ## Receivables Assigned",
+          "score": 0.6741
+        },
+        {
+          "doc_id": "en_collateral_ltv",
+          "chunk_id": "en_collateral_ltv#2",
+          "lang": "en",
+          "text": "es a minimum coverage ratio of 1.5 times the outstanding facility. ## Receivables Assigned trade receivables are accepted up to 80% of eligible invoices aged under 90 days. Receivables from a single buyer above 25% of the assigned pool are subject to a concentration haircut.",
+          "score": 0.6045
+        },
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#2",
+          "lang": "ar",
+          "text": "لمخزون المرهون برهن حيازي عائم بحد أقصى 40% من الأقل بين التكلفة وصافي القيمة البيعية، ويتطلب نسبة تغطية لا تقل عن 1.5 مرة من قيمة التسهيل القائم. ## الذمم المدينة تُقبل الذمم المدينة التجارية المُحالة بنسبة تصل إلى 80% من الفواتير المؤهلة التي يقل عمرها عن 90 يوماً. وتخضع الذمم المستحقة من مشترٍ واحد تتجاوز 25% من المحفظة المُحالة لخصم تركز.",
+          "score": 0.5446
+        }
+      ]
+    },
+    {
+      "query": "What is the minimum debt service coverage ratio for a new term loan?",
+      "lang": "en",
+      "expect_doc_id": "en_credit_risk_ratios",
+      "rank1_doc": "en_credit_risk_ratios",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "en_credit_risk_ratios",
+          "chunk_id": "en_credit_risk_ratios#0",
+          "lang": "en",
+          "text": "# Credit Risk Ratio Thresholds (SYNTHETIC — not real SCB policy) ## Debt service coverage The minimum debt service coverage ratio (DSCR) for a new term facility is 1.25 times, measured on projected operating cash flow over scheduled principal and interest. Borrowers with a DSCR between 1.10 and 1.25 may be approved only with additional collateral or a shorter tenor, and the deviation must be justified in writing. ## Leverage Net debt to EBITDA",
+          "score": 0.7519
+        },
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#0",
+          "lang": "ar",
+          "text": "# معايير إقراض الشركات الصغيرة والمتوسطة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## مدة التسهيل تُمنح تسهيلات رأس المال العامل للشركات الصغيرة والمتوسطة لمدة أقصاها 36 شهراً، قابلة للتجديد عند المراجعة السنوية. أما القروض لأجل لأغراض الإنفاق الرأسمالي فيجوز أن تصل مدتها إلى 84 شهراً، بما في ذلك فترة سماح لا تتجاوز 12 شهراً. وتُراجع تسهيلات",
+          "score": 0.6309
+        },
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#1",
+          "lang": "ar",
+          "text": "إلى 84 شهراً، بما في ذلك فترة سماح لا تتجاوز 12 شهراً. وتُراجع تسهيلات السحب على المكشوف والتسهيلات المتجددة مرة واحدة على الأقل كل 12 شهراً. ## حجم التسهيل يجب ألا يتجاوز إجمالي تعرض البنك لمجموعة عميل واحدة من الشركات الصغيرة والمتوسطة مبلغ 50,000,000 جنيه مصري دون تصعيد إلى لجنة الائتمان بالمركز الرئيسي. وتتطلب التسهيلات التي تزيد على",
+          "score": 0.5834
+        }
+      ]
+    },
+    {
+      "query": "Which business activities is the bank prohibited from financing?",
+      "lang": "en",
+      "expect_doc_id": "en_prohibited_activities",
+      "rank1_doc": "en_prohibited_activities",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "en_prohibited_activities",
+          "chunk_id": "en_prohibited_activities#0",
+          "lang": "en",
+          "text": "# Prohibited and Restricted Activities (SYNTHETIC — not real SCB policy) ## Prohibited The bank does not provide credit to businesses whose primary activity is: gambling or betting; production or trade of weapons and ammunition; unlicensed money-services or currency dealing; production of tobacco products; extraction or processing of asbestos; or any activity appearing on the national sanctions list. ## Restricted (require Head-Office",
+          "score": 0.7918
+        },
+        {
+          "doc_id": "ar_prohibited_sectors",
+          "chunk_id": "ar_prohibited_sectors#0",
+          "lang": "ar",
+          "text": "# الأنشطة المحظورة والمقيَّدة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## الأنشطة المحظورة لا يمنح البنك ائتماناً للمنشآت التي يكون نشاطها الرئيسي: القمار والمراهنات؛ أو إنتاج الأسلحة والذخائر أو الاتجار فيها؛ أو خدمات الصرافة أو تداول العملات دون ترخيص؛ أو إنتاج منتجات التبغ؛ أو استخراج الأسبستوس أو معالجته؛ أو أي نشاط مدرَج على قائمة العقوبات",
+          "score": 0.7167
+        },
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#0",
+          "lang": "ar",
+          "text": "# قواعد الضمانات ونسبة التمويل إلى القيمة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## الضمان العقاري بالنسبة للعقارات التجارية المرهونة كضمان أساسي، يبلغ الحد الأقصى لنسبة التمويل إلى القيمة 70% من القيمة السوقية وفق تقييم مستقل حديث. وبالنسبة للعقارات السكنية يبلغ الحد الأقصى لنسبة التمويل إلى القيمة 80%. ويجب ألا يزيد عمر التقييم على 12 شهراً",
+          "score": 0.4404
+        }
+      ]
+    },
+    {
+      "query": "Is lending to agriculture and food processing allowed?",
+      "lang": "en",
+      "expect_doc_id": "en_prohibited_activities",
+      "rank1_doc": "en_prohibited_activities",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "en_prohibited_activities",
+          "chunk_id": "en_prohibited_activities#2",
+          "lang": "en",
+          "text": ". Facilities in these sectors above EGP 10,000,000 also require a site visit documented in the credit file. ## Agriculture exception Standard agricultural and food-processing lending is permitted and is not a restricted activity, provided water-use and effluent permits are on file.",
+          "score": 0.5851
+        },
+        {
+          "doc_id": "ar_prohibited_sectors",
+          "chunk_id": "ar_prohibited_sectors#2",
+          "lang": "ar",
+          "text": "مزارع الدواجن والماشية واسعة النطاق؛ أفران الطوب؛ والمحاجر. كما تتطلب التسهيلات في هذه القطاعات التي تتجاوز 10,000,000 جنيه مصري زيارة ميدانية موثَّقة في ملف الائتمان. ## استثناء الزراعة يُسمح بالإقراض الزراعي وتصنيع الأغذية بالشكل المعتاد ولا يُعد نشاطاً مقيَّداً، شريطة وجود تصاريح استخدام المياه والصرف في الملف.",
+          "score": 0.5074
+        },
+        {
+          "doc_id": "ar_prohibited_sectors",
+          "chunk_id": "ar_prohibited_sectors#1",
+          "lang": "ar",
+          "text": "؛ أو استخراج الأسبستوس أو معالجته؛ أو أي نشاط مدرَج على قائمة العقوبات الوطنية. ## الأنشطة المقيَّدة (تتطلب مراجعة بيئية واجتماعية من المركز الرئيسي) يتطلب تمويل القطاعات التالية تقييماً للمخاطر البيئية والاجتماعية قبل الموافقة: إنتاج الأسمنت والجير؛ مدابغ الجلود ومعالجتها؛ مزارع الدواجن والماشية واسعة النطاق؛ أفران الطوب؛ والمحاجر. كما تتطلب",
+          "score": 0.502
+        }
+      ]
+    },
+    {
+      "query": "ما هي المدة القصوى لتسهيل رأس المال العامل للشركات الصغيرة والمتوسطة؟",
+      "lang": "ar",
+      "expect_doc_id": "ar_sme_tenor",
+      "rank1_doc": "ar_sme_tenor",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#0",
+          "lang": "ar",
+          "text": "# معايير إقراض الشركات الصغيرة والمتوسطة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## مدة التسهيل تُمنح تسهيلات رأس المال العامل للشركات الصغيرة والمتوسطة لمدة أقصاها 36 شهراً، قابلة للتجديد عند المراجعة السنوية. أما القروض لأجل لأغراض الإنفاق الرأسمالي فيجوز أن تصل مدتها إلى 84 شهراً، بما في ذلك فترة سماح لا تتجاوز 12 شهراً. وتُراجع تسهيلات",
+          "score": 0.7397
+        },
+        {
+          "doc_id": "en_sme_lending",
+          "chunk_id": "en_sme_lending#0",
+          "lang": "en",
+          "text": "# SME Lending Standards (SYNTHETIC — not real SCB policy) ## Tenor limits SME working-capital facilities are granted for a maximum tenor of 36 months, renewable on annual review. SME term loans for capital expenditure may run up to 84 months including a grace period that must not exceed 12 months. Overdraft and revolving facilities are uncommitted and reviewed at least once every 12 months. ## Facility size The total SME exposure to a single",
+          "score": 0.5829
+        },
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#2",
+          "lang": "ar",
+          "text": "صعيد إلى لجنة الائتمان بالمركز الرئيسي. وتتطلب التسهيلات التي تزيد على 20,000,000 جنيه مصري قوائم مالية مدققة لسنتين ماليتين. ## الحد الأدنى للتسعير تُسعَّر تسهيلات الشركات الصغيرة والمتوسطة بحد أدنى قدره سعر البنك المركزي المصري مضافاً إليه 300 نقطة أساس. وأي تسعير دون هذا الحد يُعد استثناءً يتطلب موافقة لجنة الائتمان ويُوثَّق في ملف العميل.",
+          "score": 0.5524
+        }
+      ]
+    },
+    {
+      "query": "ما الحد الأقصى لنسبة التمويل إلى القيمة للعقارات التجارية؟",
+      "lang": "ar",
+      "expect_doc_id": "ar_real_estate_ltv",
+      "rank1_doc": "ar_real_estate_ltv",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#0",
+          "lang": "ar",
+          "text": "# قواعد الضمانات ونسبة التمويل إلى القيمة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## الضمان العقاري بالنسبة للعقارات التجارية المرهونة كضمان أساسي، يبلغ الحد الأقصى لنسبة التمويل إلى القيمة 70% من القيمة السوقية وفق تقييم مستقل حديث. وبالنسبة للعقارات السكنية يبلغ الحد الأقصى لنسبة التمويل إلى القيمة 80%. ويجب ألا يزيد عمر التقييم على 12 شهراً",
+          "score": 0.6702
+        },
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#2",
+          "lang": "ar",
+          "text": "صعيد إلى لجنة الائتمان بالمركز الرئيسي. وتتطلب التسهيلات التي تزيد على 20,000,000 جنيه مصري قوائم مالية مدققة لسنتين ماليتين. ## الحد الأدنى للتسعير تُسعَّر تسهيلات الشركات الصغيرة والمتوسطة بحد أدنى قدره سعر البنك المركزي المصري مضافاً إليه 300 نقطة أساس. وأي تسعير دون هذا الحد يُعد استثناءً يتطلب موافقة لجنة الائتمان ويُوثَّق في ملف العميل.",
+          "score": 0.6599
+        },
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#2",
+          "lang": "ar",
+          "text": "لمخزون المرهون برهن حيازي عائم بحد أقصى 40% من الأقل بين التكلفة وصافي القيمة البيعية، ويتطلب نسبة تغطية لا تقل عن 1.5 مرة من قيمة التسهيل القائم. ## الذمم المدينة تُقبل الذمم المدينة التجارية المُحالة بنسبة تصل إلى 80% من الفواتير المؤهلة التي يقل عمرها عن 90 يوماً. وتخضع الذمم المستحقة من مشترٍ واحد تتجاوز 25% من المحفظة المُحالة لخصم تركز.",
+          "score": 0.6077
+        }
+      ]
+    },
+    {
+      "query": "ما نسبة التغطية المطلوبة للمخزون المرهون برهن حيازي عائم؟",
+      "lang": "ar",
+      "expect_doc_id": "ar_real_estate_ltv",
+      "rank1_doc": "ar_real_estate_ltv",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#2",
+          "lang": "ar",
+          "text": "لمخزون المرهون برهن حيازي عائم بحد أقصى 40% من الأقل بين التكلفة وصافي القيمة البيعية، ويتطلب نسبة تغطية لا تقل عن 1.5 مرة من قيمة التسهيل القائم. ## الذمم المدينة تُقبل الذمم المدينة التجارية المُحالة بنسبة تصل إلى 80% من الفواتير المؤهلة التي يقل عمرها عن 90 يوماً. وتخضع الذمم المستحقة من مشترٍ واحد تتجاوز 25% من المحفظة المُحالة لخصم تركز.",
+          "score": 0.6271
+        },
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#1",
+          "lang": "ar",
+          "text": "ى لنسبة التمويل إلى القيمة 80%. ويجب ألا يزيد عمر التقييم على 12 شهراً عند السحب، وأن يُجريه مُقيِّم مُدرَج على قائمة المُقيِّمين المعتمدين لدى البنك. ## الضمان المنقول تُقبل الآلات والمعدات بحد أقصى 50% من صافي القيمة الدفترية أو 40% من قيمة البيع الجبري، أيهما أقل. ويُقبل المخزون المرهون برهن حيازي عائم بحد أقصى 40% من الأقل بين التكلفة وصافي",
+          "score": 0.5886
+        },
+        {
+          "doc_id": "en_collateral_ltv",
+          "chunk_id": "en_collateral_ltv#2",
+          "lang": "en",
+          "text": "es a minimum coverage ratio of 1.5 times the outstanding facility. ## Receivables Assigned trade receivables are accepted up to 80% of eligible invoices aged under 90 days. Receivables from a single buyer above 25% of the assigned pool are subject to a concentration haircut.",
+          "score": 0.5744
+        }
+      ]
+    },
+    {
+      "query": "متى يُدرَج العميل على قائمة المتابعة؟",
+      "lang": "ar",
+      "expect_doc_id": "ar_watchlist_restructuring",
+      "rank1_doc": "ar_watchlist_restructuring",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "ar_watchlist_restructuring",
+          "chunk_id": "ar_watchlist_restructuring#0",
+          "lang": "ar",
+          "text": "# قائمة المتابعة وإعادة الهيكلة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## مؤشرات الإنذار المبكر يُدرَج العميل على قائمة المتابعة عند تحقق أي من الحالات التالية: انخفاض نسبة تغطية خدمة الدين دون 1.10 مرة؛ أو تأخر السداد لأكثر من 30 يوماً؛ أو انخفاض نسبة تغطية الفوائد دون 1.5 مرة؛ أو تجاوز نسبة صافي الدين إلى الأرباح قبل الفوائد والضرائب",
+          "score": 0.5314
+        },
+        {
+          "doc_id": "ar_real_estate_ltv",
+          "chunk_id": "ar_real_estate_ltv#1",
+          "lang": "ar",
+          "text": "ى لنسبة التمويل إلى القيمة 80%. ويجب ألا يزيد عمر التقييم على 12 شهراً عند السحب، وأن يُجريه مُقيِّم مُدرَج على قائمة المُقيِّمين المعتمدين لدى البنك. ## الضمان المنقول تُقبل الآلات والمعدات بحد أقصى 50% من صافي القيمة الدفترية أو 40% من قيمة البيع الجبري، أيهما أقل. ويُقبل المخزون المرهون برهن حيازي عائم بحد أقصى 40% من الأقل بين التكلفة وصافي",
+          "score": 0.4596
+        },
+        {
+          "doc_id": "ar_watchlist_restructuring",
+          "chunk_id": "ar_watchlist_restructuring#2",
+          "lang": "ar",
+          "text": "صنيفات الائتمانية تلقائياً عند إعادة الهيكلة، لكن يجب رفع المخصصات وفق تعليمات البنك المركزي المصري. ويظل التسهيل المُعاد هيكلته على قائمة المتابعة لمدة 12 شهراً على الأقل من تاريخ أول سداد منتظم. ## الإعفاءات أي انحراف عن هذه القواعد يُعد استثناءً صريحاً يجب توثيقه في ملف الائتمان مع بيان المبرر.",
+          "score": 0.4515
+        }
+      ]
+    },
+    {
+      "query": "هل يجوز إعادة هيكلة التسهيل دون موافقة لجنة الائتمان؟",
+      "lang": "ar",
+      "expect_doc_id": "ar_watchlist_restructuring",
+      "rank1_doc": "ar_watchlist_restructuring",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "ar_watchlist_restructuring",
+          "chunk_id": "ar_watchlist_restructuring#1",
+          "lang": "ar",
+          "text": "دون 1.5 مرة؛ أو تجاوز نسبة صافي الدين إلى الأرباح قبل الفوائد والضرائب والإهلاك 4.0 مرات. ويُراجَع العملاء على قائمة المتابعة كل ربع سنة. ## إعادة الهيكلة لا يجوز إعادة هيكلة التسهيل إلا بموافقة لجنة الائتمان بالمركز الرئيسي، وبعد أن يقدم العميل خطة عمل محدَّثة. ولا تُخفَّض التصنيفات الائتمانية تلقائياً عند إعادة الهيكلة، لكن يجب رفع المخصصات وفق",
+          "score": 0.7028
+        },
+        {
+          "doc_id": "ar_watchlist_restructuring",
+          "chunk_id": "ar_watchlist_restructuring#2",
+          "lang": "ar",
+          "text": "صنيفات الائتمانية تلقائياً عند إعادة الهيكلة، لكن يجب رفع المخصصات وفق تعليمات البنك المركزي المصري. ويظل التسهيل المُعاد هيكلته على قائمة المتابعة لمدة 12 شهراً على الأقل من تاريخ أول سداد منتظم. ## الإعفاءات أي انحراف عن هذه القواعد يُعد استثناءً صريحاً يجب توثيقه في ملف الائتمان مع بيان المبرر.",
+          "score": 0.552
+        },
+        {
+          "doc_id": "ar_sme_tenor",
+          "chunk_id": "ar_sme_tenor#0",
+          "lang": "ar",
+          "text": "# معايير إقراض الشركات الصغيرة والمتوسطة (وثيقة اصطناعية — ليست سياسة حقيقية للبنك) ## مدة التسهيل تُمنح تسهيلات رأس المال العامل للشركات الصغيرة والمتوسطة لمدة أقصاها 36 شهراً، قابلة للتجديد عند المراجعة السنوية. أما القروض لأجل لأغراض الإنفاق الرأسمالي فيجوز أن تصل مدتها إلى 84 شهراً، بما في ذلك فترة سماح لا تتجاوز 12 شهراً. وتُراجع تسهيلات",
+          "score": 0.4906
+        }
+      ]
+    },
+    {
+      "query": "ما القطاعات التي تتطلب مراجعة بيئية واجتماعية قبل الموافقة؟",
+      "lang": "ar",
+      "expect_doc_id": "ar_prohibited_sectors",
+      "rank1_doc": "ar_prohibited_sectors",
+      "rank1_correct": true,
+      "phrase_in_top": true,
+      "doc_in_topk": true,
+      "passed": true,
+      "topk": [
+        {
+          "doc_id": "ar_prohibited_sectors",
+          "chunk_id": "ar_prohibited_sectors#1",
+          "lang": "ar",
+          "text": "؛ أو استخراج الأسبستوس أو معالجته؛ أو أي نشاط مدرَج على قائمة العقوبات الوطنية. ## الأنشطة المقيَّدة (تتطلب مراجعة بيئية واجتماعية من المركز الرئيسي) يتطلب تمويل القطاعات التالية تقييماً للمخاطر البيئية والاجتماعية قبل الموافقة: إنتاج الأسمنت والجير؛ مدابغ الجلود ومعالجتها؛ مزارع الدواجن والماشية واسعة النطاق؛ أفران الطوب؛ والمحاجر. كما تتطلب",
+          "score": 0.7738
+        },
+        {
+          "doc_id": "en_prohibited_activities",
+          "chunk_id": "en_prohibited_activities#1",
+          "lang": "en",
+          "text": "any activity appearing on the national sanctions list. ## Restricted (require Head-Office Environmental & Social review) Credit to the following sectors requires an environmental and social risk assessment before approval: cement and lime production; tanneries and leather processing; large-scale poultry and livestock operations; brick kilns; and quarrying. Facilities in these sectors above EGP 10,000,000 also require a site visit documented in",
+          "score": 0.6789
+        },
+        {
+          "doc_id": "en_prohibited_activities",
+          "chunk_id": "en_prohibited_activities#2",
+          "lang": "en",
+          "text": ". Facilities in these sectors above EGP 10,000,000 also require a site visit documented in the credit file. ## Agriculture exception Standard agricultural and food-processing lending is permitted and is not a restricted activity, provided water-use and effluent permits are on file.",
+          "score": 0.4489
+        }
+      ]
+    }
+  ]
+}

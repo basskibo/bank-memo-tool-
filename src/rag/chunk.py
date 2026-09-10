@@ -18,7 +18,7 @@ from src.config import (
 from src.rag.schemas import Lang, PolicyChunk
 
 _ARABIC = re.compile(r"[؀-ۿ]")
-_WS = re.compile(r"[ \t]+")
+_WS = re.compile(r"\s+")
 
 
 def detect_lang(text: str) -> Lang:
@@ -37,8 +37,9 @@ def _window(lang: Lang) -> tuple[int, int]:
 
 
 def _normalize(text: str) -> str:
-    # collapse runs of spaces/tabs but keep newlines (paragraph structure helps the reader)
-    return "\n".join(_WS.sub(" ", line).strip() for line in text.splitlines()).strip()
+    # A chunk is a retrieval unit, not a formatted page — collapse ALL whitespace to single
+    # spaces so a rule that wraps across a line still matches and embeds cleanly.
+    return _WS.sub(" ", text).strip()
 
 
 def chunk_document(doc_id: str, raw_text: str, lang: Lang | None = None) -> list[PolicyChunk]:

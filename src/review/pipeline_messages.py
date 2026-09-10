@@ -259,8 +259,8 @@ def msg_memo_done() -> dict:
 PIPELINE_LOG_CSS = """
 .pipeline-log {
     display: flex; flex-direction: column; gap: 0.55rem;
-    max-height: 400px; overflow-y: auto; padding: 0.15rem 0.1rem;
-    scroll-behavior: auto;
+    max-height: 400px; overflow-x: hidden; overflow-y: auto; padding: 0.15rem 0.1rem;
+    scroll-behavior: auto; max-width: 100%;
 }
 .pipeline-log-empty {
     color: #8a96a3; font-size: 0.88rem; font-style: italic; padding: 0.5rem 0.2rem;
@@ -269,6 +269,7 @@ PIPELINE_LOG_CSS = """
     display: flex; align-items: flex-start; gap: 0.75rem;
     padding: 0.65rem 0.85rem; border-radius: 10px;
     background: #f8fafc; border: 1px solid #e8edf2;
+    min-width: 0; max-width: 100%; overflow: hidden;
 }
 .log-entry-ingest   { border-left: 3px solid #0047BA; }
 .log-entry-extract  { border-left: 3px solid #6b4fbb; }
@@ -318,7 +319,7 @@ PIPELINE_LOG_CSS = """
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em;
     text-transform: uppercase; color: #64707c; margin-bottom: 0.15rem;
 }
-.log-message { font-size: 0.88rem; color: #1a2430; line-height: 1.45; white-space: pre-wrap; }
+.log-message { font-size: 0.88rem; color: #1a2430; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 """
 
 

@@ -114,9 +114,12 @@ def render_processing_animation_html(
     border: 1px solid #d6e3f3; border-radius: 16px;
     padding: 0.85rem 1.25rem; margin-bottom: 0.85rem;
     box-shadow: 0 6px 18px rgba(0, 71, 186, 0.08);
+    max-width: 100%; min-width: 0; overflow: hidden;
+    box-sizing: border-box;
 }}
 .processing-lottie {{
-    width: 132px; height: 132px; flex: 0 0 auto;
+    width: 132px; height: 132px; flex: 0 0 132px;
+    min-width: 132px; min-height: 132px; max-width: 132px; max-height: 132px;
     border-radius: 14px; background: white;
     border: 1px solid #e3ebf5;
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7);
@@ -138,7 +141,10 @@ def render_processing_animation_html(
     pointer-events: none; z-index: 1;
 }}
 .processing-lottie svg {{
-    position: relative; z-index: 2;
+    position: absolute !important; inset: 0; z-index: 2;
+    width: 100% !important; height: 100% !important;
+    max-width: 100% !important; max-height: 100% !important;
+    display: block;
 }}
 @keyframes processing-scan {{
     0% {{ top: 18%; opacity: 0.35; }}
@@ -192,7 +198,10 @@ def render_processing_animation_html(
 }}
 @media (max-width: 720px) {{
     .processing-visual {{ flex-direction: column; text-align: center; }}
-    .processing-lottie {{ width: 112px; height: 112px; }}
+    .processing-lottie {{
+        width: 112px; height: 112px; flex-basis: 112px;
+        min-width: 112px; min-height: 112px; max-width: 112px; max-height: 112px;
+    }}
 }}
 </style>
 <div class="processing-visual">
@@ -236,6 +245,11 @@ def render_processing_animation_html(
       loop: true,
       autoplay: true,
       animationData: animationData,
+      rendererSettings: {{
+        preserveAspectRatio: "xMidYMid slice",
+        progressiveLoad: false,
+        hideOnTransparent: true,
+      }},
     }});
   }}
 

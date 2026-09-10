@@ -13,3 +13,5 @@ pandas>=2.0
 pytesseract>=0.3.10
 arabic-reshaper>=3.0
 python-bidi>=0.4
+sentence-transformers>=3.0
+torchvision>=0.20

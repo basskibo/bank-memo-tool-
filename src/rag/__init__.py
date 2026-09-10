@@ -13,7 +13,11 @@ Public contract:
 
 Swap `PolicyIndex`'s numpy store for Chroma/OpenSearch later; the contract stays.
 """
+from src.rag.policy_check import PolicyCheckItem, build_policy_queries, run_policy_check
 from src.rag.retrieve import retrieve
 from src.rag.schemas import PolicyChunk, RetrievedChunk
 
-__all__ = ["retrieve", "RetrievedChunk", "PolicyChunk"]
+__all__ = [
+    "retrieve", "RetrievedChunk", "PolicyChunk",
+    "run_policy_check", "build_policy_queries", "PolicyCheckItem",
+]

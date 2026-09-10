@@ -92,9 +92,26 @@ st.markdown("""
     --scb-bg: #f7f9fc;
 }
 
-html, body, .stApp { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--scb-text); }
+html, body, .stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--scb-text);
+    overflow-x: hidden !important;
+    max-width: 100%;
+}
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stMainBlockContainer"],
+[data-testid="stHeader"] {
+    overflow-x: hidden !important;
+    max-width: 100%;
+}
+[data-testid="stHtml"] { max-width: 100%; overflow: hidden; }
 
-.block-container { padding-top: 1.3rem; padding-bottom: 2rem; max-width: 1180px; }
+.block-container {
+    padding-top: 1.3rem; padding-bottom: 2rem;
+    max-width: min(1180px, 100%) !important;
+    overflow-x: hidden;
+}
 
 .scb-header {
     background: white;
@@ -107,8 +124,13 @@ html, body, .stApp { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sa
     gap: 1.1rem;
     border: 1px solid var(--scb-border);
     box-shadow: 0 4px 18px rgba(0, 71, 186, 0.08);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
-.scb-header-logo svg { width: auto; height: 34px; display: block; }
+.scb-header-logo { flex: 0 0 auto; }
+.scb-header-logo svg { width: auto; height: 34px; display: block; max-width: 100%; }
+.scb-header-text { min-width: 0; overflow-wrap: anywhere; }
 .scb-header-text h1 { margin: 0; font-size: 1.22rem; font-weight: 700; letter-spacing: -0.01em; color: var(--scb-text); }
 .scb-header-text p { margin: 0.2rem 0 0; color: var(--scb-text-muted); font-size: 0.82rem; }
 .scb-footer { opacity: 0.45; font-size: 0.75rem; margin-top: 2.5rem; text-align: center; }
@@ -116,6 +138,7 @@ html, body, .stApp { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sa
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #ffffff 0%, var(--scb-bg) 100%);
     border-right: 1px solid var(--scb-border);
+    overflow-x: hidden;
 }
 section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
 section[data-testid="stSidebar"] .block-container {
@@ -311,6 +334,52 @@ div[data-testid="stMetricValue"] { color: var(--scb-blue); font-weight: 800; }
 }
 .review-field-name { font-weight: 700; color: var(--scb-text); font-size: 0.92rem; margin-bottom: 0.25rem; }
 .review-field-name .warn-icon { color: #b5750a; margin-right: 0.35rem; font-size: 1rem; }
+
+.policy-hit {
+    background: white; border: 1px solid var(--scb-border); border-radius: 12px;
+    padding: 0.9rem 1.05rem; margin: 0 0 0.7rem 0;
+    box-shadow: 0 1px 3px rgba(15, 35, 55, 0.04);
+    max-width: 100%; overflow: hidden; box-sizing: border-box;
+}
+.policy-hit-top {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.policy-hit-rank {
+    flex: 0 0 auto; min-width: 1.5rem; height: 1.5rem; border-radius: 999px;
+    background: var(--scb-blue); color: white; font-size: 0.68rem; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0 0.4rem;
+}
+.policy-hit-title {
+    font-weight: 700; font-size: 0.92rem; color: var(--scb-text);
+    min-width: 0; flex: 1 1 8rem; line-height: 1.3;
+}
+.policy-chip {
+    display: inline-flex; align-items: center;
+    background: var(--scb-blue-soft); color: var(--scb-blue);
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.04em;
+    padding: 0.18rem 0.5rem; border-radius: 999px; text-transform: uppercase;
+}
+.policy-chip-muted { background: #f1f3f6; color: var(--scb-text-muted); }
+.policy-hit-section {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--scb-blue); margin: 0 0 0.3rem 0;
+}
+.policy-hit-body {
+    font-size: 0.88rem; line-height: 1.55; color: var(--scb-text);
+    margin: 0 0 0.55rem 0; overflow-wrap: anywhere;
+}
+.policy-hit-body:last-of-type { margin-bottom: 0.15rem; }
+.policy-hit[dir="rtl"] .policy-hit-body, .policy-hit[dir="rtl"] .policy-hit-section,
+.policy-hit[dir="rtl"] .policy-hit-title { text-align: right; }
+.policy-hit-cite {
+    font-size: 0.7rem; color: var(--scb-text-muted); margin-top: 0.55rem;
+    padding-top: 0.5rem; border-top: 1px solid var(--scb-border);
+}
+.policy-topic { margin: 0.35rem 0 0.85rem 0; }
+.policy-topic-name { font-size: 0.95rem; font-weight: 700; color: var(--scb-text); margin: 0 0 0.2rem; }
+.policy-topic-query { font-size: 0.78rem; color: var(--scb-text-muted); margin: 0 0 0.65rem; line-height: 1.4; }
+.policy-empty { font-size: 0.82rem; color: var(--scb-text-muted); font-style: italic; margin: 0 0 0.75rem; }
 
 /* Bigger, more prominent tab bar */
 button[data-baseweb="tab"] {
@@ -735,7 +804,153 @@ def _request_cancel_processing() -> None:
         shared["cancel"].set()
 
 
+def _policy_hit_html(hit, rank: int | None = None) -> str:
+    from src.rag.display import chunk_view
+
+    view = chunk_view(hit)
+    direction = "rtl" if view["rtl"] else "ltr"
+    chips = [f'<span class="policy-chip">{html.escape(view["lang"].upper())}</span>']
+    if view["synthetic"]:
+        chips.append('<span class="policy-chip policy-chip-muted">Synthetic</span>')
+    chips.append(f'<span class="policy-chip">{view["score_pct"]}% match</span>')
+    rank_html = f'<span class="policy-hit-rank">{rank}</span>' if rank is not None else ""
+    blocks_html = []
+    for block in view["blocks"]:
+        if block["section"]:
+            blocks_html.append(
+                f'<p class="policy-hit-section">{html.escape(block["section"])}</p>'
+            )
+        if block["body"]:
+            blocks_html.append(
+                f'<p class="policy-hit-body">{html.escape(block["body"])}</p>'
+            )
+    cite = html.escape(f"{view['doc_id']} · passage {view['passage']}")
+    return (
+        f'<article class="policy-hit" dir="{direction}" lang="{html.escape(view["lang"])}">'
+        f'<div class="policy-hit-top">{rank_html}'
+        f'<div class="policy-hit-title">{html.escape(view["title"])}</div>'
+        f'{"".join(chips)}</div>'
+        f'{"".join(blocks_html)}'
+        f'<div class="policy-hit-cite">{cite}</div>'
+        "</article>"
+    )
+
+
+def _render_policy_hits(hits: list) -> None:
+    if not hits:
+        st.html('<p class="policy-empty">No matching policy passage.</p>')
+        return
+    st.html("".join(_policy_hit_html(h, rank=i) for i, h in enumerate(hits, start=1)))
+
+
 # --- Sidebar: upload + document queue --------------------------------------
+def _render_policy_check(doc_id: str, fields: list, document_type: str) -> None:
+    """Per-document RAG lookup seeded from the extracted fields (SPEC.md §9 demo, applied).
+
+    READ-ONLY: does not change any field or the memo. A retrieved passage is a pointer for the
+    reviewer, not a compliance decision — a full Policy Monitor is a Risk Agent capability and
+    stays out of POC scope.
+    """
+    with st.expander(":material/policy: Policy check (synthetic corpus)", expanded=False):
+        st.caption(
+            "Runs policy questions built from this document's extracted fields against the "
+            "synthetic EN/AR policy corpus. Pointers for the reviewer — **not** a compliance "
+            "decision, and it does not affect the fields or the memo."
+        )
+        if not st.button(":material/search: Run policy check", key=f"polcheck_{doc_id}"):
+            st.session_state.setdefault("policy_check_cache", {})
+            cached = st.session_state["policy_check_cache"].get(doc_id)
+            if cached is None:
+                return
+            items = cached
+        else:
+            try:
+                from src.rag import run_policy_check
+
+                with st.spinner("Retrieving policy passages…"):
+                    items = run_policy_check(fields, document_type, k=3)
+            except Exception as exc:  # noqa: BLE001
+                st.warning(f"Policy check unavailable: {exc}")
+                return
+            st.session_state.setdefault("policy_check_cache", {})[doc_id] = items
+
+        parts = ["<div>"]
+        for item in items:
+            parts.append('<section class="policy-topic">')
+            parts.append(f'<p class="policy-topic-name">{html.escape(item.topic)}</p>')
+            parts.append(f'<p class="policy-topic-query">{html.escape(item.query)}</p>')
+            if not item.hits:
+                parts.append('<p class="policy-empty">No matching policy passage.</p>')
+            else:
+                parts.extend(_policy_hit_html(h, rank=i) for i, h in enumerate(item.hits, start=1))
+            parts.append("</section>")
+        parts.append("</div>")
+        st.html("".join(parts))
+
+
+def _render_policy_lookup(*, expanded: bool = False) -> None:
+    """Isolated RAG demo (SPEC.md §9) — does NOT touch extracted fields or the memo."""
+    with st.expander(":material/policy: Policy lookup (RAG demo)", expanded=expanded):
+        st.caption(
+            "Synthetic credit-policy corpus (English and Arabic). Search returns the top matching "
+            "passages with a citation. Isolated demo — it does not feed the memo."
+        )
+        with st.form("policy_lookup_form", border=False):
+            q = st.text_input(
+                "Policy question",
+                placeholder="What is the maximum SME tenor?   ·   ما هي المدة القصوى؟",
+            )
+            submitted = st.form_submit_button(
+                ":material/search: Search corpus",
+                type="primary",
+            )
+        if submitted:
+            query = q.strip()
+            if not query:
+                st.session_state.rag_lookup = None
+            else:
+                try:
+                    from src.rag import retrieve
+
+                    with st.spinner("Retrieving…"):
+                        hits = retrieve(query, k=3)
+                except Exception as exc:  # noqa: BLE001 — demo panel, surface the reason
+                    st.warning(f"RAG demo unavailable: {exc}")
+                    return
+                st.session_state.rag_lookup = {"query": query, "hits": hits}
+
+        cached = st.session_state.get("rag_lookup")
+        if cached:
+            if not cached["hits"]:
+                st.info(f"No matching passage for “{cached['query']}”.")
+            else:
+                _render_policy_hits(cached["hits"])
+
+        with st.expander("What’s in the corpus", expanded=False):
+            try:
+                from src.rag.corpus import build_chunks, load_corpus
+                from src.rag.display import parse_policy_text, pretty_doc_label
+
+                docs = load_corpus()
+                chunks = build_chunks()
+                st.caption(
+                    f"{len(chunks)} passages from {len(docs)} synthetic documents · "
+                    "in-memory vectors, not persisted"
+                )
+                by_doc: dict[str, list] = {}
+                for chunk in chunks:
+                    by_doc.setdefault(chunk.doc_id, []).append(chunk)
+                for doc_id, lang, raw in docs:
+                    parsed = parse_policy_text(raw.replace("\n", " "))
+                    label = parsed["title"] or pretty_doc_label(doc_id)
+                    n = len(by_doc.get(doc_id, []))
+                    st.markdown(
+                        f"**{label}** · `{lang.upper()}` · {n} passage{'s' if n != 1 else ''}"
+                    )
+            except Exception as exc:  # noqa: BLE001
+                st.warning(f"Cannot list the corpus: {exc}")
+
+
 with st.sidebar:
     st.markdown(_sidebar_brand_html(), unsafe_allow_html=True)
 
@@ -1122,6 +1337,8 @@ def render_document_detail(doc_id: str) -> None:
                     unsafe_allow_html=True,
                 )
 
+        _render_policy_check(doc_id, fields, (document.document_type if document else "unknown"))
+
     decisions = {}
     if needs_review:
         st.markdown(f"**Needs review ({len(needs_review)})**")
@@ -1250,6 +1467,8 @@ else:
     for tab, doc_id in zip(tabs[1:], doc_ids):
         with tab:
             render_document_detail(doc_id)
+
+_render_policy_lookup(expanded=not doc_ids)
 
 st.markdown(
     '<p class="scb-footer">SCB Credit Memo Portal — internal proof-of-concept. '

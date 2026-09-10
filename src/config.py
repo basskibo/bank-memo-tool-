@@ -83,6 +83,20 @@ OLLAMA_VISION_MODEL = os.environ.get("OLLAMA_VISION_MODEL", "qwen2.5vl:7b")
 
 SAMPLE_DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "sample_docs")
 
+# --- RAG demo (SPEC.md §9) — isolated policy-lookup, NOT wired into extract/memo ---
+POLICY_CORPUS_DIR = os.path.join(SAMPLE_DOCS_DIR, "policy_corpus")
+# Small multilingual sentence encoder — EN + AR in one space, runs on CPU in a second or two.
+# NOT a generative model: this step is similarity search, not "ask the LLM to cite policy".
+RAG_EMBED_MODEL = os.environ.get("RAG_EMBED_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+# Deliberately dumb fixed-size chunking (SPEC.md §9 / proposal §5): separate sizes for EN and
+# AR because Arabic packs more meaning per character. Overlap keeps a rule that straddles a
+# cut from being lost.
+RAG_CHUNK_CHARS_EN = int(os.environ.get("RAG_CHUNK_CHARS_EN", "450"))
+RAG_CHUNK_OVERLAP_EN = int(os.environ.get("RAG_CHUNK_OVERLAP_EN", "90"))
+RAG_CHUNK_CHARS_AR = int(os.environ.get("RAG_CHUNK_CHARS_AR", "350"))
+RAG_CHUNK_OVERLAP_AR = int(os.environ.get("RAG_CHUNK_OVERLAP_AR", "70"))
+RAG_TOP_K = int(os.environ.get("RAG_TOP_K", "3"))
+
 
 def sample_doc_path(filename: str) -> Path:
     """Resolve a sample PDF by filename (searches company subfolders under sample_docs/)."""

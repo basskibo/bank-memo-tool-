@@ -56,6 +56,9 @@ def test_real_corpus_first_chunks_have_no_hashes():
         assert "#" not in blob
         assert "SYNTHETIC" not in blob
         assert "اصطناعية" not in parsed["title"]
+
+
+def test_chunk_view_citation_is_compact():
     hit = RetrievedChunk(
         doc_id="en_sme_lending",
         chunk_id="en_sme_lending#0",

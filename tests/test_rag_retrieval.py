@@ -98,3 +98,28 @@ def test_policy_check_is_read_only_on_fields():
     before = f.model_dump()
     run_policy_check([f], "financial_statement", k=2)
     assert f.model_dump() == before
+
+
+def test_chroma_store_persists_and_matches_memory(tmp_path, monkeypatch):
+    """RAG_STORE=chroma builds a real on-disk DB and returns the same rank-1 doc as memory."""
+    pytest.importorskip("chromadb")
+    import src.rag.index as idx_mod
+
+    monkeypatch.setattr(idx_mod, "RAG_CHROMA_DIR", str(tmp_path / "chroma"))
+    idx_mod.reset_index()
+
+    chroma = idx_mod.build_index("chroma")
+    assert chroma.kind == "chroma"
+    assert (tmp_path / "chroma" / "chroma.sqlite3").exists()  # persisted
+    assert (tmp_path / "chroma" / "manifest.json").exists()
+
+    mem = idx_mod.build_index("memory")
+    for g in GOLD[:5]:
+        c1 = chroma.query(g.query, k=1)[0].doc_id
+        m1 = mem.query(g.query, k=1)[0].doc_id
+        assert c1 == m1 == g.expect_doc_id
+
+    # second open of the same dir must NOT re-embed (manifest fingerprint matches)
+    reopened = idx_mod.ChromaPolicyIndex(idx_mod.build_chunks(), tmp_path / "chroma")
+    assert reopened.collection.count() == mem.matrix.shape[0]
+    idx_mod.reset_index()

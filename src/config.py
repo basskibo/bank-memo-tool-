@@ -96,6 +96,13 @@ RAG_CHUNK_OVERLAP_EN = int(os.environ.get("RAG_CHUNK_OVERLAP_EN", "90"))
 RAG_CHUNK_CHARS_AR = int(os.environ.get("RAG_CHUNK_CHARS_AR", "350"))
 RAG_CHUNK_OVERLAP_AR = int(os.environ.get("RAG_CHUNK_OVERLAP_AR", "70"))
 RAG_TOP_K = int(os.environ.get("RAG_TOP_K", "3"))
+# Vector store for the demo. "chroma" = local persistent DB on disk (survives restarts, the
+# SPEC §8 "Chroma/FAISS" choice); "memory" = numpy matrix rebuilt each process. Same retrieve()
+# contract either way. Chroma needs `pip install chromadb`.
+RAG_STORE = os.environ.get("RAG_STORE", "chroma").strip().lower()
+RAG_CHROMA_DIR = os.environ.get(
+    "RAG_CHROMA_DIR", os.path.join(os.path.dirname(__file__), "..", "data", "rag_chroma")
+)
 
 
 def sample_doc_path(filename: str) -> Path:

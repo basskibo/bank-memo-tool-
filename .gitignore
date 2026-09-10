@@ -5,3 +5,6 @@ __pycache__/
 .streamlit/
 *.egg-info/
 .env
+
+# RAG persistent vector DB (rebuilt from sample_docs/policy_corpus/)
+/data/rag_chroma/

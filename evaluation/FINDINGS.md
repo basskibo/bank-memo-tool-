@@ -323,17 +323,104 @@ scope: don't make anything downstream hard-depend on `document_type` being corre
 inputs; treat it as a hint, not a guarantee (this already lines up with how `document_ingestor.py`
 falls back to `"unknown"` rather than raising).
 
+### Vision-LLM benchmark (lokalni Ollama, 2026-09-09)
+
+`mcs02.cmu` više nije dostupan i `llama3.2-vision` (arhitektura `mllama`) uopšte ne učitava na
+aktuelnom Ollama buildu (`unknown model architecture: 'mllama'`) — što je odvojen environment
+problem od onog u "Live verification attempt" gore, ne isti. Benchmark 7 vision modela lokalno
+(Apple M4, 24 GB unified, ~17.8 GiB Metal budžet), zadatak: transkripcija strana skeniranog
+arapskog FS (`sample_docs/misr_pharma/misr_pharma_financial_statements_fy2024_arabic_scan.pdf`,
+istočno-arapske cifre, arapski renderovan obrnutim redosledom slova u samom PDF-u — težak slučaj).
+Ground truth: brojevi iz `sample_docs/generate_sample_docs.py`.
+
+| Model | str. 1 (20 brojeva) | str. 2 (14) | brzina | ishod |
+|---|---|---|---|---|
+| **qwen2.5vl:7b @ 2560 px, num_ctx 12288** | **18/20** | **14/14** | 60–90 s/str | ✅ jedini upotrebljiv |
+| qwen2.5vl:7b @ 1600 px | 0/20 | — | — | petlja ponavljanja |
+| qwen2.5vl:3b | 0/20 | — | ~270 s | petlja ponavljanja |
+| qwen3-vl:8b | 0 (prazan izlaz) | 0 | ~250 s | "thinking" potroši ceo `num_predict` |
+| minicpm-v:8b | 0 (halucinacija) | — | ~130 s | izmišlja tekst koji nije na strani |
+| glm-ocr | 0 (halucinacija) | — | ~40 s | izmišlja tekst |
+| gemma3:12b | 0/20 | — | ~220 s | slabo + sporo |
+| llama3.2-vision:11b | — | — | — | ne učitava (`mllama`) |
+
+Zaključci:
+- **Cela strana kao JEDNA slika na visokoj rezoluciji** je bitno bolja od sečenja/tiling-a — tiling
+  pomeša kontekst i tačnost padne na ~3/20. Qwen2.5-VL koristi dinamičku rezoluciju, pa veći ulaz
+  = više vizuelnih tokena = tačnije čitanje cifara; 1600 px je premalo (model se zaglavi), 2048 px
+  daje 15/20, 2560 px daje 18/20.
+- **`num_ctx` se MORA postaviti eksplicitno.** Ollama default (4096) je manji od jedne strane na
+  visokoj rezoluciji → ili HTTP 400 (`exceeds context size`) ili se runner sruši pri učitavanju.
+- Preostale greške su pojedinačne cifre (٢↔٣, višak nule) — plafon za lokalni 7B na ovako
+  izobličenom skenu. Downstream guardrail-i (confidence prag, citation validator) hvataju ispade.
+- Ollama 0.33.3 build je nestabilan sa vision modelima — povremeno restartuje server pod
+  opterećenjem. Sekvencijalni pozivi (jedan po jedan) su obavezni; vidi PLAN.md "Backlog —
+  Robusnost obrade" za retry/checkpoint plan.
+
+### Druga, nezavisna greška: JSON ekstrakcija, ne OCR
+
+Oba arapska skena su u portalu padala sa `extract failed: Expecting ',' delimiter` i izgledalo je
+kao da OCR puca. Ne puca — vision OCR uspešno pročita sve 3 strane ("text is readable"). Pad je u
+sledećem koraku: Financial Wizard šalje dug, šumovit OCR tekst modelu `qwen2.5:3b`, a Ollama
+default `num_ctx` 4096 iseče ulaz i/ili prekine JSON odgovor na pola objekta → `_extract_json`
+baci grešku. Oba dokumenta iz istog razloga (velik šumovit payload + slab model + mali prozor).
+
+Fix (2026-09-09): `OLLAMA_MODEL` → `qwen2.5:7b`, `OLLAMA_EXTRACT_NUM_CTX` = 16384 na
+text-extract Ollama pozivu (`llm_client.py`). Vision default → `qwen2.5vl:7b` sa gornjim
+parametrima (`config.py`, `document_ingestor.py`). `.env` ažuriran.
+
+### Fused VL pass — jedan model, bez swap-a (2026-09-10)
+
+`POC_OCR_ENGINE=mlx_vision_extract` (`src/agents/vision_extractor.py`). Umesto
+raster → VL transkripcija → (stop VL, load 14B) → 14B čita šumovit tekst → JSON, radi po
+skeniranoj strani **dva fokusirana VL poziva dok je samo VL učitan**: (1) transkripcija,
+(2) ekstrakcija polja sa iste slike + te transkripcije kao kontekst, vrednost normalizovana na
+zapadne cifre, citat kopiran iz transkripcije. Financial Wizard onda samo validira/merge-uje
+(`_fields_from_prefetched`, isti guardrail-i) — nema text-LLM poziva, nema swap-a na 14B.
+Graf preskače `ensure_mlx_text()` kad su polja već tu. 10 novih testova.
+
+Prednosti (potvrđene): nema `Stopping...` swap ciklusa; ekstrakcija čita sliku, ne svoj OCR;
+citation validacija radi jer je citat iz iste transkripcije.
+
+Otvoreno: **tačnost na istočno-arapskim ciframa je i dalje slaba sa MLX 4-bit VL-7B.** Live run
+(misr_pharma FS arapski, 3 strane, 394 s): sva polja izvučena, zapadne cifre, ali brojevi pogrešni
+(`129,400,000` → `1292400000`, `341,200,000` → `143,200,000`). Uzrok nije pipeline — u Naskh
+fontu je arapska nula `٠` mala centrirana tačka, gotovo identična `٬` (U+066C thousands sep) i
+skeniranom šumu, pa `٤٥٬٩٠٠٬٠٠٠` izgleda kao `٤٥٬٩··٬···`. Isti razlog zbog kog je FINDINGS gore
+označio istočno-arapske cifre kao težak slučaj — sad na realistično renderovanom dokumentu
+(regenerisan sa `sample_docs/arabic_font.py`, ispravan RTL/shaping).
+
+Sledeće: (a) MLX VL-7B **8-bit** (~8 GB) — verovatno vraća deo gubitka kvantizacije;
+(b) re-baseline Ollama `qwen2.5vl:7b` (18/20 na starom dokumentu) na novom;
+(c) VL-32B-4bit ako mora da bude jedini model;
+(d) human-review gate ionako hvata ove (confidence/citation) — to je projektovana mreža.
+
+### 14B-4bit text extract: sporo + odsečen JSON (2026-09-10)
+
+Sa `MLX_MODEL=Qwen2.5-14B-Instruct-4bit` na Mini 24 GB: **326 s za JEDNO polje** (180 s timeout +
+147 s retry), pa `JSONDecodeError: Unterminated string ... char 587` — `PER_FIELD_MAX_TOKENS=384`
+je sekao odgovor usred `source_snippet` (model kopira dugu šumovitu OCR liniju), a `_extract_json`
+nije imao nikakvu toleranciju → ceo dokument padne, bez retry-ja (petlja je hvatala samo timeout).
+
+Fix: `_extract_json` sad popravlja odsečen JSON (`_repair_truncated_json` — zatvori string/zagrade,
+odbaci trailing parcijalni ključ); `_post_mlx_chat` retry-uje i na parse grešku uz nudge; tokeni
+podignuti (per-field 384→640, batch 1536→2048), prompt ograničava snippet na ~120 znakova.
+**Pravi fix: ne koristiti 14B na ovoj mašini** — `MLX_MODEL` default je 7B (`.env` ga override-uje
+na 14B — obrisati tu liniju), ili `POC_OCR_ENGINE=mlx_vision_extract` (fused — skenirane strane
+uopšte ne diraju text model).
+
 ### Follow-up items
 
 6. ~~Verify the Eastern-vs-Western digit OCR gap against PaddleOCR specifically~~ — **done**. Same
    pattern confirmed on a second, independent engine (see "PaddleOCR comparison" above) — this is
    a real, engine-independent risk for Eastern-Indic digits in dense tables, not a Tesseract quirk.
 7. **New, higher-priority item**: pilot a **vision-LLM ingestion path** for Arabic scanned
-   documents (see "Vision-LLM alternative" above) — this is the only approach tested so far that
-   actually reads the authentic digit script correctly. Needs: a self-hosted open-weight vision
-   model evaluated for the on-premise requirement (e.g. Qwen2-VL via vLLM), a small labelled set
-   of scanned pages to measure accuracy on (not just one document), and a decision on whether it
-   replaces or supplements the OCR branch in `document_ingestor.py`.
+   documents (see "Vision-LLM alternative" and "Vision-LLM benchmark" above) — the only approach
+   tested so far that actually reads the authentic digit script. **Progress (2026-09-09):**
+   self-hosted open-weight model chosen and wired in — `qwen2.5vl:7b` via local Ollama, ~18/20
+   digits/page. **Still needs:** a labelled set of more than one scanned document to measure real
+   accuracy, and a decision on replace-vs-supplement for the Tesseract branch in
+   `document_ingestor.py`.
 8. If/when real scanned SCB documents arrive, check what digit convention they actually use before
    assuming either script.
 9. Consider a lightweight, more resilient document-type signal for OCR'd input (e.g. presence of

@@ -6,7 +6,7 @@ uporedi rezultate sa evaluation/expected_values.py, i na kraju generiši nacrt m
 Pokretanje:
     .venv/bin/python run_demo.py
 
-Provider (Ollama ili Anthropic API) se bira preko POC_LLM_PROVIDER u .env — vidi .env.example.
+Provider (mlx / Ollama / Anthropic API) se bira preko POC_LLM_PROVIDER u .env — vidi .env.example.
 """
 import sys
 import time
@@ -20,7 +20,7 @@ from rich.table import Table
 
 from evaluation.expected_values import EXPECTED
 from src.agents.narrative_synthesizer import synthesize_memo
-from src.config import sample_doc_path
+from src.config import extract_batch_enabled, sample_doc_path
 from src.llm_client import LLMNotConfigured, active_provider_summary, check_provider_ready
 from src.orchestration.graph import run_extraction
 
@@ -51,8 +51,11 @@ def run_one_document(filename: str) -> dict | None:
 
     def progress_cb(field_name: str, i: int, total: int) -> None:
         elapsed = time.monotonic() - start
-        status.update(f"[cyan]Ekstrakcija polja {i}/{total}: {field_name}[/cyan] "
-                       f"[dim]({elapsed:.0f}s proteklo)[/dim]")
+        if extract_batch_enabled() and i == 1:
+            label = f"Batch ekstrakcija ({total} polja, 1 LLM poziv): {field_name}"
+        else:
+            label = f"Ekstrakcija polja {i}/{total}: {field_name}"
+        status.update(f"[cyan]{label}[/cyan] [dim]({elapsed:.0f}s proteklo)[/dim]")
 
     with console.status("[cyan]Ucitavam i parsiram dokument...[/cyan]", spinner="dots") as status:
         result = run_extraction(str(sample_doc_path(filename)), on_progress=progress_cb)
@@ -145,18 +148,23 @@ def main():
                 status.update(f"[cyan]Pišem sekciju {i}/{total}: {title}[/cyan]")
 
             with console.status("[cyan]Pišem nacrt memoranduma...[/cyan]", spinner="dots") as status:
-                memo = synthesize_memo("Acme Trading LLC", confirmed, open_exceptions,
-                                        on_progress=memo_progress_cb)
-            if memo.guardrail_violations:
-                console.print("[bold red]GUARDRAIL VIOLATION — memo sadrži necitiranu "
-                               "brojku:[/bold red]")
-                for v in memo.guardrail_violations:
-                    console.print(f"  - {v}")
-            for section in memo.sections:
-                console.print(Markdown(f"### {section.title}\n\n{section.text}"))
-            if memo.open_exceptions:
-                console.print(f"[yellow]Otvoreni izuzeci (nisu u memou): "
-                               f"{memo.open_exceptions}[/yellow]")
+                try:
+                    memo = synthesize_memo("Acme Trading LLC", confirmed, open_exceptions,
+                                            on_progress=memo_progress_cb)
+                except LLMNotConfigured as exc:
+                    console.print(f"[red]Memo nije napisan — MLX server nije dostupan:\n{exc}[/red]")
+                    memo = None
+            if memo:
+                if memo.guardrail_violations:
+                    console.print("[bold red]GUARDRAIL VIOLATION — memo sadrži necitiranu "
+                                   "brojku:[/bold red]")
+                    for v in memo.guardrail_violations:
+                        console.print(f"  - {v}")
+                for section in memo.sections:
+                    console.print(Markdown(f"### {section.title}\n\n{section.text}"))
+                if memo.open_exceptions:
+                    console.print(f"[yellow]Otvoreni izuzeci (nisu u memou): "
+                                   f"{memo.open_exceptions}[/yellow]")
         else:
             console.print("[yellow]Nema potvrđenih polja, memo se ne generiše.[/yellow]")
 

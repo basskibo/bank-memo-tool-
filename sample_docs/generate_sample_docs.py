@@ -8,19 +8,29 @@ Pokretanje:
     .venv/bin/python sample_docs/generate_sample_docs.py          # svi setovi
     .venv/bin/python sample_docs/generate_sample_docs.py --set acme   # jedan set
 
+Arapska imena koriste ugrađeni Noto Naskh Arabic (sample_docs/fonts/) + arabic-reshaper/python-bidi.
+Helvetica nema arapske glifove — bez toga PDF viewer crta crne kvadrate, a pdfplumber vadi nnnn.
+
 Svaka firma se generiše u svoj podfolder: sample_docs/<company_slug>/
 """
 from __future__ import annotations
 
 import argparse
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from arabic_font import ARABIC_FONT_NAME, register_reportlab_arabic_font, shape_arabic
+
+register_reportlab_arabic_font()
 
 OUT_DIR = Path(__file__).parent
 styles = getSampleStyleSheet()
@@ -28,7 +38,15 @@ h1 = styles["Title"]
 h2 = ParagraphStyle("h2", parent=styles["Heading2"], spaceBefore=14, spaceAfter=6)
 body = styles["Normal"]
 small = ParagraphStyle("small", parent=styles["Normal"], fontSize=8, textColor=colors.grey)
-arabic_sub = ParagraphStyle("arabic_sub", parent=styles["Normal"], fontSize=9, textColor=colors.HexColor("#444444"))
+arabic_sub = ParagraphStyle(
+    "arabic_sub",
+    parent=styles["Normal"],
+    fontName=ARABIC_FONT_NAME,
+    fontSize=10,
+    leading=14,
+    textColor=colors.HexColor("#444444"),
+    alignment=TA_RIGHT,
+)
 
 TABLE_STYLE = TableStyle([
     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a3a5c")),
@@ -110,16 +128,20 @@ def build(company_slug: str, filename: str, story: list):
     print(f"Generated {company_slug}/{filename}")
 
 
-def _table(data: list[list[str]], col_widths: list[float], style: TableStyle = TABLE_STYLE) -> Table:
+def _table(data: list[list], col_widths: list[float], style: TableStyle = TABLE_STYLE) -> Table:
     t = Table(data, colWidths=col_widths)
     t.setStyle(style)
     return t
 
 
+def _arabic_para(text: str) -> Paragraph:
+    return Paragraph(shape_arabic(text), arabic_sub)
+
+
 def _egyptian_financial_header(case: CompanyCase, fy: FinancialYear) -> list:
     story = []
     story.append(Paragraph(case.legal_name, h1))
-    story.append(Paragraph(case.arabic_name, arabic_sub))
+    story.append(_arabic_para(case.arabic_name))
     story.append(Spacer(1, 4))
     story.append(Paragraph(
         f"Annual Financial Statements — Fiscal Year {fy.year} "
@@ -220,7 +242,7 @@ def generate_loan_application(case: CompanyCase) -> None:
     app_data = [
         ["Field", "Details"],
         ["Legal name", case.legal_name],
-        ["Arabic name", case.arabic_name],
+        ["Arabic name", _arabic_para(case.arabic_name)],
         ["Commercial Register No.", case.cr_number],
         ["Tax Card No.", case.tax_card],
         ["Industry / activity", case.industry],

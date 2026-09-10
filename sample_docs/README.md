@@ -91,9 +91,12 @@ Namerna veza sa `nile_delta_foods/` clean setom (ista kompanija, isti brojevi) �
 uporedivu proveru: da li OCR→ekstrakcija pristup na skenu pogađa iste vrednosti kao direktna
 ekstrakcija na digitalnom engleskom PDF-u.
 
-**Zahteva sistemski `tesseract-ocr` + `tesseract-ocr-ara` paket** (nije Python zavisnost):
+**Zahteva sistemski Tesseract** (nije Python zavisnost):
 
 ```bash
+# macOS
+brew install tesseract tesseract-lang   # tesseract-lang includes ara
+# Linux
 sudo apt install tesseract-ocr tesseract-ocr-ara
 ```
 

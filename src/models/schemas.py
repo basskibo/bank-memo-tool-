@@ -40,6 +40,11 @@ class IngestedDocument(BaseModel):
     pages: list[IngestedPage]
     quality_ok: bool
     quality_notes: str | None = None
+    # HOW-not-WHAT cache (not part of the SPEC 3.1 contract): with the fused vision engine
+    # (POC_OCR_ENGINE=mlx_vision_extract) the VL model returns raw field dicts alongside the
+    # page transcription. Financial Wizard consumes these instead of making its own LLM call.
+    # None = engine did not pre-extract; [] = engine ran but found no fields.
+    vision_prefetched_fields: list[dict] | None = None
 
     def full_text(self) -> str:
         return "\n\n".join(f"[PAGE {p.page_number}]\n{p.text}" for p in self.pages)

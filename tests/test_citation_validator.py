@@ -57,8 +57,43 @@ def test_valid_value_and_snippet_stays_confirmed():
     assert result.status == "confirmed"
 
 
-def test_snippet_not_found_still_flags_needs_review():
+def test_page_marker_snippet_recovers_when_value_is_on_cited_page():
+    """LLM copies `[PAGE n]` from IngestedDocument.full_text(); that marker is not in page.text."""
+    page = (
+        "Corporate Credit Facility Application\n"
+        "Legal name Misr Pharma Distribution S.A.E.\n"
+        "Commercial Register No. CR 334512"
+    )
+    field = _field(
+        value="Misr Pharma Distribution S.A.E.",
+        source_snippet="[PAGE 1]",
+    )
+    result = validate_citations([field], _doc(page))[0]
+    assert result.status == "confirmed"
+    assert result.source_snippet != "[PAGE 1]"
+    assert "PAGE" not in result.source_snippet
+    assert "Misr Pharma Distribution S.A.E." in result.source_snippet
+    assert "hallucinated" not in (result.validation_note or "").lower()
+
+
+def test_page_marker_prefix_is_stripped_from_otherwise_valid_snippet():
+    field = _field(source_snippet="[PAGE 1]\nCompany Name Ltd.")
+    result = validate_citations([field], _doc())[0]
+    assert result.status == "confirmed"
+    assert "[PAGE" not in result.source_snippet
+    assert "Company Name Ltd." in result.source_snippet
+
+
+def test_hallucinated_snippet_recovers_when_value_is_on_cited_page():
     field = _field(value="Company Name Ltd.", source_snippet="Nonexistent Snippet")
+    result = validate_citations([field], _doc())[0]
+    assert result.status == "confirmed"
+    assert "Company Name Ltd." in result.source_snippet
+    assert "Nonexistent" not in result.source_snippet
+
+
+def test_snippet_and_value_missing_from_page_still_flags_needs_review():
+    field = _field(value="Phantom Holdings LLC", source_snippet="[PAGE 1]")
     result = validate_citations([field], _doc())[0]
     assert result.status == "needs_review"
     assert "hallucinated" in (result.validation_note or "").lower()

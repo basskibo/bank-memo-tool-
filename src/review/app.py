@@ -29,9 +29,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # so src.* / repor
 from reports.live_report import build_batch_report_pdf, build_live_report_pdf
 from src.agents.narrative_synthesizer import synthesize_memo
 from src.config import SAMPLE_DOCS_DIR
-from src.models.field_display import build_memo_footnotes, format_field_display_value
+from src.llm_client import provider_setup_error
+from src.logging_setup import configure_logging, get_logger, log_pipeline_entry
+from src.models.field_display import (
+    build_memo_footnotes,
+    emphasize_bracket_spans,
+    format_field_display_value,
+)
 from src.orchestration.graph import apply_human_review, run_extraction
 from src.review.pipeline_messages import (
+    format_pct,
     msg_cancelled,
     msg_error,
     msg_extract_complete,
@@ -48,6 +55,8 @@ from src.review.processing_animation import render_processing_animation_html
 _REVIEW_DIR = Path(__file__).resolve().parent
 SCB_LOGO_PATH = _REVIEW_DIR / "assets" / "scb_logo.svg"
 SCB_LOGO_SVG = SCB_LOGO_PATH.read_text(encoding="utf-8")
+
+configure_logging()  # once per process — not a log line, so widget reruns stay quiet
 
 st.set_page_config(page_title="SCB Credit Memo Portal", page_icon="🏦", layout="wide")
 st.logo(str(SCB_LOGO_PATH), size="medium")
@@ -403,14 +412,17 @@ def _status_badge_html(run: dict, doc_id: str) -> str:
     if _is_processing(doc_id):
         log = run.get("progress_log") or []
         if log:
-            _, phase, _, current, total = pipeline_progress(log)
+            frac, _, _, _, _ = pipeline_progress(log)
             return (
                 f'<span class="doc-badge doc-badge-processing">'
-                f'Processing · {current}/{total}</span>'
+                f'Processing · {format_pct(frac)}</span>'
             )
         return '<span class="doc-badge doc-badge-processing">Processing</span>'
     if run["memo"] is not None:
         return '<span class="doc-badge doc-badge-done">Memo ready</span>'
+    if run.get("process_error"):
+        label = "Stopped" if run["process_error"] == "cancelled" else "Failed"
+        return f'<span class="doc-badge doc-badge-review">{label}</span>'
     if run["fields"] is None:
         return '<span class="doc-badge doc-badge-pending">Not processed</span>'
     needs = sum(1 for f in run["fields"] if f.status == "needs_review")
@@ -460,8 +472,8 @@ def _queue_item_hint(run: dict, doc_id: str) -> tuple[str, bool]:
     if _is_processing(doc_id):
         log = run.get("progress_log") or []
         if log:
-            _, phase, _, current, total = pipeline_progress(log)
-            return f"In progress · {phase} ({current}/{total})", True
+            frac, phase, _, _, _ = pipeline_progress(log)
+            return f"In progress · {phase} · {format_pct(frac)}", True
         return "In progress…", True
     if run["fields"] is None:
         return "Queued — not processed yet", False
@@ -530,7 +542,7 @@ def add_run(name: str, data: bytes) -> str:
     if doc_id not in st.session_state.runs:
         st.session_state.runs[doc_id] = {
             "name": name, "bytes": data, "document": None, "fields": None, "memo": None,
-            "progress_log": [],
+            "progress_log": [], "process_error": None,
         }
         st.toast(f"Added {name}", icon=":material/description:")
     return doc_id
@@ -538,10 +550,10 @@ def add_run(name: str, data: bytes) -> str:
 
 def _render_log(log: list[dict], placeholder=None, progress_placeholder=None) -> None:
     if progress_placeholder is not None:
-        frac, phase, detail, current, total = pipeline_progress(log)
+        frac, phase, _, _, _ = pipeline_progress(log)
         progress_placeholder.progress(
             frac,
-            text=f"{phase} — {detail} ({current}/{total} steps)",
+            text=f"{phase} · {format_pct(frac)}",
         )
     html_doc = render_live_pipeline_log(log)
     if placeholder is not None:
@@ -556,35 +568,21 @@ def _flush_log(log: list[dict], placeholder, progress_placeholder=None) -> None:
 
 
 def _show_pipeline_log(log: list[dict]) -> None:
-    frac, phase, detail, current, total = pipeline_progress(log)
-    st.progress(frac, text=f"{phase} — {detail} ({current}/{total} steps)")
+    frac, phase, _, _, _ = pipeline_progress(log)
+    st.progress(frac, text=f"{phase} · {format_pct(frac)}")
     _render_log(log)
 
 
 def _pipeline_log_label(log: list[dict]) -> str:
-    _, phase, _, current, total = pipeline_progress(log)
-    if current >= total and log:
-        return f"Pipeline log — complete ({total}/{total} steps)"
-    if current > 0:
-        return f"Pipeline log — {phase} ({current}/{total} steps)"
-    return "Pipeline log"
+    frac, _, _, current, _ = pipeline_progress(log)
+    if not log or current <= 0:
+        return "Pipeline log"
+    return f"Pipeline log — {format_pct(frac)}"
 
 
-@st.fragment(run_every=2)
-def _processing_visual_fragment(doc_id: str) -> None:
-    """Lottie + phase caption — refreshed every 2s to avoid flicker from the log poll."""
-    if not _is_processing(doc_id):
-        return
-    log = st.session_state.runs[doc_id].setdefault("progress_log", [])
-    st.html(
-        render_processing_animation_html(log, animation_id=f"proc-lottie-{doc_id}"),
-        unsafe_allow_javascript=True,
-    )
-
-
-@st.fragment(run_every=0.5)
-def _processing_log_fragment(doc_id: str) -> None:
-    """Refresh log/progress in-place — avoids full-page rerun every few hundred ms."""
+@st.fragment(run_every=1, key="processing_live")
+def _processing_live_fragment(doc_id: str, status_slot, progress_slot, log_slot) -> None:
+    """Refresh status/progress/log in claimed parent slots — expander stays mounted."""
     if not _is_processing(doc_id):
         return
     shared = st.session_state.get("proc_shared")
@@ -592,14 +590,25 @@ def _processing_log_fragment(doc_id: str) -> None:
         _apply_processing_outcome()
         return
     log = st.session_state.runs[doc_id].setdefault("progress_log", [])
-    with st.expander(
-        _pipeline_log_label(log),
-        expanded=True,
-        key=f"pipeline_log_live_{doc_id}",
-    ):
-        progress_placeholder = st.empty()
-        log_placeholder = st.empty()
-        _flush_log(log, log_placeholder, progress_placeholder)
+    frac, phase, _, _, _ = pipeline_progress(log)
+    with status_slot:
+        st.html(
+            render_processing_animation_html(log, animation_id=f"proc-lottie-{doc_id}"),
+            unsafe_allow_javascript=True,
+        )
+    with progress_slot:
+        st.progress(frac, text=f"{phase} · {format_pct(frac)}")
+    with log_slot:
+        st.html(render_live_pipeline_log(log), unsafe_allow_javascript=True)
+
+
+def _render_processing_ui(doc_id: str) -> None:
+    """Stable chrome on the full-app run; fragment only fills these slots."""
+    status_slot = st.container()
+    with st.expander("Pipeline log", expanded=True, key=f"pipeline_log_live_{doc_id}"):
+        progress_slot = st.container()
+        log_slot = st.container()
+    _processing_live_fragment(doc_id, status_slot, progress_slot, log_slot)
 
 
 def process_run_data(
@@ -613,12 +622,13 @@ def process_run_data(
     """Ingest -> extract -> validate. No Streamlit session state — safe in worker threads."""
     def append(entry: dict) -> None:
         log.append(entry)
+        log_pipeline_entry(entry)
         if log_placeholder is not None:
             _flush_log(log, log_placeholder, progress_placeholder)
 
     if cancel_check and cancel_check():
         append(msg_cancelled())
-        return {"success": False, "document": None, "fields": None}
+        return {"success": False, "document": None, "fields": None, "error": "cancelled"}
 
     append(msg_ingest_start(name))
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
@@ -634,35 +644,49 @@ def process_run_data(
 
     if cancel_check and cancel_check():
         append(msg_cancelled())
-        return {"success": False, "document": None, "fields": None}
+        return {"success": False, "document": None, "fields": None, "error": "cancelled"}
     if result.get("error") == "cancelled":
         append(msg_cancelled())
-        return {"success": False, "document": None, "fields": None}
+        return {"success": False, "document": None, "fields": None, "error": "cancelled"}
     if result.get("error"):
         append(msg_error(result["error"]))
-        return {"success": False, "document": None, "fields": None}
+        return {"success": False, "document": None, "fields": None, "error": result["error"]}
 
     append(msg_extract_complete())
     return {
         "success": True,
         "document": result["document"],
         "fields": result["fields"],
+        "error": None,
     }
 
 
 def _processing_worker(shared: dict) -> None:
-    shared["outcome"] = process_run_data(
-        shared["name"],
-        shared["bytes"],
-        shared["log"],
-        cancel_check=shared["cancel"].is_set,
-    )
-    shared["done"].set()
+    try:
+        shared["outcome"] = process_run_data(
+            shared["name"],
+            shared["bytes"],
+            shared["log"],
+            cancel_check=shared["cancel"].is_set,
+        )
+    except Exception as exc:  # noqa: BLE001 — must always finish or the UI hangs
+        get_logger("pipeline").exception(
+            "Pipeline worker crashed while processing %s", shared.get("name")
+        )
+        entry = msg_error(str(exc))
+        shared["log"].append(entry)
+        log_pipeline_entry(entry)
+        shared["outcome"] = {
+            "success": False, "document": None, "fields": None, "error": str(exc),
+        }
+    finally:
+        shared["done"].set()
 
 
 def _start_background_processing(doc_id: str) -> None:
     """Snapshot document data on the main thread, then run extraction in the background."""
     run = st.session_state.runs[doc_id]
+    run["process_error"] = None
     log = run.setdefault("progress_log", [])
     shared = {
         "doc_id": doc_id,
@@ -679,6 +703,7 @@ def _start_background_processing(doc_id: str) -> None:
     st.session_state.proc_finished = False
     thread = threading.Thread(target=_processing_worker, args=(shared,), daemon=True)
     st.session_state.proc_thread = thread
+    get_logger("pipeline").info("Starting pipeline for %s", run["name"])
     thread.start()
 
 
@@ -690,9 +715,13 @@ def _apply_processing_outcome() -> None:
 
     doc_id = shared["doc_id"]
     outcome = shared.get("outcome") or {}
+    run = st.session_state.runs[doc_id]
     if outcome.get("success"):
-        st.session_state.runs[doc_id]["document"] = outcome["document"]
-        st.session_state.runs[doc_id]["fields"] = outcome["fields"]
+        run["document"] = outcome["document"]
+        run["fields"] = outcome["fields"]
+        run["process_error"] = None
+    else:
+        run["process_error"] = outcome.get("error") or "Processing failed"
 
     st.session_state.proc_shared = None
     _clear_processing_state()
@@ -715,6 +744,9 @@ with st.sidebar:
         '<p class="sidebar-hint">Drop PDF credit documents here, or pick a sample below.</p>',
         unsafe_allow_html=True,
     )
+    setup_err = provider_setup_error()
+    if setup_err:
+        st.error(setup_err)
     uploaded_files = st.file_uploader(
         "Upload PDFs", type=["pdf"], accept_multiple_files=True,
         label_visibility="collapsed",
@@ -797,8 +829,8 @@ if st.session_state.batch_pending_ids is not None:
         1 for d in batch_ids
         if d in st.session_state.runs and st.session_state.runs[d]["fields"] is not None
     )
-    header(subtitle=f"Processing batch — {completed_count}/{total} complete.")
-    st.subheader(f":material/sync: Batch processing — {completed_count}/{total} documents")
+    header(subtitle=f"Processing batch — {format_pct(completed_count / total if total else 0)} complete.")
+    st.subheader(f":material/sync: Batch processing — {format_pct(completed_count / total if total else 0)}")
 
     for doc_id in batch_ids:
         batch_run = st.session_state.runs.get(doc_id)
@@ -812,7 +844,10 @@ if st.session_state.batch_pending_ids is not None:
             _show_pipeline_log(batch_run["progress_log"])
 
     next_id = next(
-        (d for d in batch_ids if d in st.session_state.runs and st.session_state.runs[d]["fields"] is None),
+        (d for d in batch_ids
+         if d in st.session_state.runs
+         and st.session_state.runs[d]["fields"] is None
+         and not st.session_state.runs[d].get("process_error")),
         None,
     )
     if next_id is None:
@@ -832,8 +867,7 @@ if st.session_state.batch_pending_ids is not None:
         _start_background_processing(next_id)
 
     if _is_processing(next_id):
-        _processing_visual_fragment(next_id)
-        _processing_log_fragment(next_id)
+        _render_processing_ui(next_id)
     else:
         shared = st.session_state.get("proc_shared")
         if shared is not None and shared["done"].is_set():
@@ -864,6 +898,8 @@ def _tab_label(doc_id: str) -> str:
 
     if _is_processing(doc_id):
         return f":material/sync: {base}"
+    if run.get("process_error"):
+        return f":material/error: {base}"
     if run["memo"] is not None:
         return f":material/task_alt: {base}"
     if run["fields"] is None:
@@ -883,6 +919,8 @@ def render_overview_tab(doc_ids: list[str]) -> None:
         fields = run["fields"]
         if _is_processing(doc_id):
             status = "Processing…"
+        elif run.get("process_error"):
+            status = "Stopped" if run["process_error"] == "cancelled" else "Failed"
         elif fields is None:
             status = "Not processed"
         elif run["memo"] is not None:
@@ -963,9 +1001,11 @@ def render_document_detail(doc_id: str) -> None:
         if is_processing:
             if st.session_state.proc_thread is None:
                 _start_background_processing(doc_id)
-            _processing_visual_fragment(doc_id)
-            _processing_log_fragment(doc_id)
+            _render_processing_ui(doc_id)
         else:
+            err = run.get("process_error")
+            if err and err != "cancelled":
+                st.error(err)
             with st.expander(
                 _pipeline_log_label(log),
                 expanded=bool(log),
@@ -1058,13 +1098,29 @@ def render_document_detail(doc_id: str) -> None:
                 return ["background-color: #fef3e2; color: #7a5200"] * len(row)
             return [""] * len(row)
 
-        styled = df.style.apply(_highlight_needs_review, axis=1).format({"Confidence": "{:.2f}"})
-        st.dataframe(styled, width="stretch", hide_index=True,
-                      height=min(320, 38 + 35 * len(df)))
+        styled = df.style.apply(_highlight_needs_review, axis=1)
+        st.dataframe(
+            styled,
+            width="stretch",
+            hide_index=True,
+            height=min(320, 38 + 35 * len(df)),
+            column_config={
+                "Confidence": st.column_config.NumberColumn(
+                    "Confidence",
+                    format="percent",
+                    min_value=0,
+                    max_value=1,
+                ),
+            },
+        )
         with st.expander(":material/source: Show sources for all fields"):
             for f in fields:
                 marker = ":material/check_circle:" if f.status == "confirmed" else ":material/warning:"
-                st.markdown(f"{marker} **{f.field_name}** — p.{f.source_page}: *\"{f.source_snippet}\"*")
+                st.markdown(
+                    f"{marker} **{f.field_name}** — "
+                    + emphasize_bracket_spans(f'p.{f.source_page}: "{f.source_snippet}"'),
+                    unsafe_allow_html=True,
+                )
 
     decisions = {}
     if needs_review:
@@ -1078,7 +1134,12 @@ def render_document_detail(doc_id: str) -> None:
                     f'<span class="value-chip">{html.escape(format_field_display_value(f, document))}</span>',
                     unsafe_allow_html=True,
                 )
-                st.caption(f"p.{f.source_page} — \"{f.source_snippet}\" · {f.validation_note or ''}")
+                st.caption(
+                    emphasize_bracket_spans(
+                        f'p.{f.source_page} — "{f.source_snippet}" · {f.validation_note or ""}'
+                    ),
+                    unsafe_allow_html=True,
+                )
                 c1, c2 = st.columns([3, 1])
                 corrected = c1.text_input("Corrected value", value=f.value,
                                             key=f"val_{doc_id}_{f.field_name}",
@@ -1105,6 +1166,7 @@ def render_document_detail(doc_id: str) -> None:
 
         def append_memo(entry: dict) -> None:
             memo_log.append(entry)
+            log_pipeline_entry(entry)
             _flush_log(memo_log, memo_placeholder)
 
         append_memo(msg_memo_start())

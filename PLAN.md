@@ -72,10 +72,34 @@ incomplete or unstructured". Vidi SPEC.md sekcije 3.1.1 i 9 za pun kontekst i ob
 | Dan 11 | OCR grana za skenirane/arapske dokumente — sintetički skenirani arapski test set modelovan po realnom EGX dokumentu, sa **autentičnim istočno-arapskim ciframa** (`sample_docs/generate_arabic_scanned_docs.py`) + OCR fallback u Document Ingestor-u (`pytesseract`, lang `ara+eng`, rasterizacija preko PyMuPDF) | ✅ **Implementirano i verifikovano end-to-end** (2026-09-08) — pun test suite (16 passed, 2 xfailed — namerno, dokumentovan nalaz). **Ključni nalaz:** Tesseract-ov `ara` model ne čita pouzdano istočno-arapske (Indic) cifre koje realni egipatski dokumenti stvarno koriste u finansijskim tabelama (izolovano od fonta/layout-a — isti test sa zapadnim ciframa prolazi 100%). **PaddleOCR provereno preko Docker-a (starija `paddleocr==2.7.3`/`paddlepaddle==2.6.2` kombinacija — novija 3.x kombinacija ima svoj bag, dokumentovano) — potvrđuje isti obrazac: zapadne cifre čita, istočno-arapske ne.** Dva nezavisna OCR engine-a, ista mana — rizik je stvaran, ne specifičan za jedan alat. **Najbolji nalaz dana:** vision-LLM (ista porodica modela već korišćena za Financial Wizard) čita identičnu sliku sa 100% tačnošću, bez OCR-a uopšte — najjača kandidat-preporuka za produkciju (self-hosted vizuelni model, npr. Qwen2-VL preko vLLM, u skladu sa proposal §11). Pun nalaz i preporuke: `evaluation/FINDINGS.md` "OCR / Arabic scanned documents" |
 | Dan 11b | Vision-LLM OCR engine ugrađen u Document Ingestor kao ravnopravna alternativa Tesseract-u, birana preko `POC_OCR_ENGINE=vision` (`OLLAMA_VISION_MODEL`, npr. `llama3.2-vision` preko mrežnog Ollama servera) | ✅ **Implementirano** (2026-09-08) — `document_ingestor.py` rasterizuje stranicu i šalje je modelu preko Ollama `/api/chat` (isti obrazac kao `POC_LLM_PROVIDER` u `llm_client.py`). Mockovani testovi (2 nova, i uspeh i graceful fallback bez servera) prolaze — 16 passed, 2 xfailed. **Živa verifikacija sa pravim `llama3.2-vision` modelom čeka korisnika** — ovaj dev environment ne može da dosegne mrežni Ollama server (`mcs02.cmu`) sa kog se model povlači, pa krajnja tačnost nije potvrđena van mock-a |
 | Dan 12 | RAG minimalni demo — chunking + embedding + retrieval nad malim sintetičkim policy korpusom (EN + AR), sa citatom uz svaki vraćeni pasus (SPEC.md sekcija 9) | ⏳ **Planirano, sledeće** |
+| Dan 13 | Vision-LLM OCR — živa verifikacija i izbor modela na lokalnom Ollama-u (M4/24 GB), pošto `mcs02.cmu` više nije dostupan i `llama3.2-vision` (`mllama`) uopšte ne radi na aktuelnom Ollama buildu | ✅ **Verifikovano i podešeno** (2026-09-09) — benchmark 7 vision modela na skeniranom arapskom FS (`sample_docs/misr_pharma/..._fy2024_arabic_scan.pdf`), ground truth iz `generate_sample_docs.py`. **Nalaz:** `qwen2.5vl:7b`, cela strana kao jedna slika @ 2560 px + `num_ctx` 12288 → ~18/20 tačnih brojeva po strani za 60–90 s/str. `qwen2.5vl:3b` i `gemma3:12b` upadaju u petlju ponavljanja; `minicpm-v:8b` i `glm-ocr` haluciniraju; `qwen3-vl:8b` vraća prazan izlaz (thinking pojede budžet). Tiling strane smanjuje tačnost. **Druga greška, nezavisna:** oba arapska skena su padala na JSON ekstrakciji (`Expecting ',' delimiter`) — ne na OCR-u — jer `qwen2.5:3b` + Ollama default `num_ctx` 4096 iseku dug šumovit OCR ulaz i vrate odsečen JSON. Fix: `OLLAMA_MODEL=qwen2.5:7b` + `num_ctx` 16384 na text-extract pozivu. Izmene: `config.py`, `document_ingestor.py`, `llm_client.py`, `.env`. Pun benchmark: `evaluation/FINDINGS.md` "Vision-LLM benchmark (lokalni Ollama)" |
+
+| Dan 14 | MLX runtime (bez Ollame) + **fused VL OCR+extract** — `mlx_lm.server`/`mlx_vlm.server` sa autoswap-om (`src/mlx_servers.py`), i `POC_OCR_ENGINE=mlx_vision_extract`: VL po skeniranoj strani i transkribuje i vadi polja u 2 fokusirana poziva, bez swap-a na 14B, Financial Wizard preskače LLM poziv (`src/agents/vision_extractor.py`, `_fields_from_prefetched`) | 🟡 **Izgrađeno i testirano** (2026-09-10) — 85 testova prolazi (+10 novih). Arhitektura radi end-to-end (394 s / 3 strane, sva polja, bez swap-a). **Tačnost brojeva sa MLX 4-bit VL-7B i dalje slaba** — u Naskh fontu je istočno-arapska nula `٠` tačka gotovo identična `٬` separatoru i skeniranom šumu (`٤٥٬٩٠٠٬٠٠٠` ≈ `٤٥٬٩··٬···`). Sledeći korak: MLX VL-7B **8-bit** ili re-baseline Ollama `qwen2.5vl:7b` na regenerisanom (realistično renderovanom) arapskom setu. Detalji: `evaluation/FINDINGS.md` "Fused VL pass". Uz to: `MLX_HTTP_LOCK` dobio 90 s acquire-timeout (zaglavljeni holder više ne blokira pipeline), test hygiene u `tests/conftest.py` |
 
 **Zašto sada:** proposal sam identifikuje ova dva kao top rizike (§16), a POC-ov princip je da se
 rizične pretpostavke dokazuju rano i izolovano (SPEC.md sekcija 1) — isti pristup kao originalni
 Dan 1-10, samo primenjen na dve nove, eksplicitno odobrene stavke obima.
+
+---
+
+## Backlog — Robusnost obrade (radi se kad se rasteretiti posao)
+
+Ne menja arhitekturu. Trenutni „Process all pending" radi sinhrono, sekvencijalno, u Streamlit
+UI threadu — ako padne na 3. strani 4. dokumenta gubi se sav progres, a UI je zamrznut dok traje.
+Za POC na jednoj mašini sekvencijalna obrada ostaje ispravan izbor (Ollama svejedno drži jedan
+model i serijalizuje pozive; paralelni vision pozivi ruše server — potvrđeno 2026-09-09). Dodaje
+se samo otpornost, ne konkurentnost:
+
+| Stavka | Deliverable | Procena | Status |
+|---|---|---|---|
+| Red u SQLite | Tabela `jobs(doc_id, status, attempts, last_error, updated_at)` sa `pending/running/done/failed`; obrada u jednom background thread-u, Streamlit samo čita i osvežava | ~0.5 dana | ⏳ backlog |
+| Retry sa backoff | Na `ConnectionError` / HTTP 5xx od Ollama-e (server povremeno restartuje, posebno posle vision poziva) — 2–3 pokušaja sa pauzom, pa `failed` sa razlogom | ~0.25 dana | ⏳ backlog |
+| Per-page checkpoint | OCR tekst se snima po strani čim stigne; restart obrade kreće od prve neurađene strane, ne od nule (bitno jer je vision ~60–90 s/str) | ~0.25 dana | ⏳ backlog |
+| Health-check | Provera `/api/version` pre svakog posla; ako je Ollama pao, jasna poruka (ili auto `ollama serve`) umesto polovične obrade | ~0.25 dana | ⏳ backlog |
+
+**Van obima za sada** (tek ako POC pređe u pravi sistem): RQ/Celery worker-i, druga Ollama
+instanca ili API za text-extract radi paralelizacije na nivou dokumenata. Na jednom Mac Mini +
+jedan Ollama, sekvencijalno je i najbrže i najsigurnije.
 
 ---
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import html
 
 from src.models.schemas import IngestedDocument, POC_FIELD_NAMES
+from src.config import LLM_PROVIDER, MLX_VISION_MODEL, OCR_ENGINE, OLLAMA_VISION_MODEL
 
 EXTRACT_FIELD_COUNT = len(POC_FIELD_NAMES)
 # ingest (2) + extract (N fields) + validate start (1) + validate each extracted field (up to N) + summary (1)
@@ -68,6 +69,50 @@ MEMO_SECTIONS: dict[str, str] = {
 }
 
 
+def chat_model_label() -> str:
+    """Short id of the model Financial Wizard / memo will call (or last successful MLX chat)."""
+    from src.llm_client import active_chat_model, last_mlx_chat_model, short_model_id
+
+    if LLM_PROVIDER == "mlx":
+        return short_model_id(last_mlx_chat_model() or active_chat_model())
+    return short_model_id(active_chat_model())
+
+
+def ocr_model_label(engine: str | None = None) -> str:
+    from src.llm_client import short_model_id
+
+    engine = (engine or OCR_ENGINE).strip().lower()
+    if engine in ("mlx_vision", "mlx_vision_extract"):
+        return short_model_id(MLX_VISION_MODEL)
+    if engine == "vision":
+        return OLLAMA_VISION_MODEL
+    return "Tesseract"
+
+
+def runtime_model_label(entries: list[dict]) -> str:
+    """Model or engine actually doing work for the latest pipeline log entry."""
+    if not entries:
+        return chat_model_label()
+    last = entries[-1]
+    stage = last.get("stage") or STAGE_INGEST
+    message = (last.get("message") or "").lower()
+    if last.get("label") == "Model loader":
+        if "vl" in message:
+            return ocr_model_label("mlx_vision")
+        return chat_model_label()
+    if stage == STAGE_INGEST:
+        if "ocr" in message:
+            if "mlx-vlm" in message:
+                return ocr_model_label("mlx_vision")
+            if "ollama" in message:
+                return ocr_model_label("vision")
+            return ocr_model_label("tesseract")
+        return "pdfplumber (no LLM)"
+    if stage == STAGE_VALIDATE:
+        return "citation rules (no LLM)"
+    return chat_model_label()
+
+
 def log_entry(stage: str, label: str, message: str, step: str | None = None, *, highlight: bool = False) -> dict:
     return {"stage": stage, "label": label, "message": message, "step": step, "highlight": highlight}
 
@@ -80,13 +125,33 @@ def msg_ingest_start(filename: str) -> dict:
     )
 
 
+def msg_mlx_loading(role: str) -> dict:
+    if role == "vision":
+        return log_entry(
+            STAGE_INGEST,
+            "Model loader",
+            "Stopping 14B and loading VL 7B for OCR…",
+        )
+    return log_entry(
+        STAGE_EXTRACT,
+        "Model loader",
+        "Stopping VL and loading 14B for extract…",
+    )
+
+
 def msg_ingest_ocr_page(i: int, total: int, engine: str) -> dict:
-    engine_label = "vizuelni LLM (Ollama)" if engine == "vision" else "Tesseract"
-    slow_hint = " — CPU-only vizuelni modeli mogu biti spori, minuti po strani" if engine == "vision" else ""
+    if engine == "vision":
+        engine_label = "visual LLM (Ollama)"
+    elif engine == "mlx_vision":
+        engine_label = "visual LLM (mlx-vlm)"
+    elif engine == "mlx_vision_extract":
+        engine_label = "visual LLM (mlx-vlm, OCR+extract)"
+    else:
+        engine_label = "Tesseract"
     return log_entry(
         STAGE_INGEST,
         "Document Ingestor",
-        f"OCR strana {i}/{total} preko {engine_label}{slow_hint}",
+        f"OCR strana {i}/{total} preko {engine_label} · {ocr_model_label(engine)}",
         step=f"{i}/{total}",
     )
 
@@ -157,7 +222,7 @@ def msg_extract_complete() -> dict:
 
 
 def msg_error(detail: str) -> dict:
-    return log_entry(STAGE_ERROR, "Pipeline", detail)
+    return log_entry(STAGE_ERROR, "Pipeline", detail, highlight=True)
 
 
 def msg_cancelled() -> dict:
@@ -173,7 +238,7 @@ def msg_memo_start() -> dict:
     return log_entry(
         STAGE_MEMO,
         "Narrative Synthesizer",
-        "Starting draft memo — only confirmed fields will be used",
+        f"Starting draft memo — only confirmed fields will be used · {chat_model_label()}",
     )
 
 
@@ -293,6 +358,15 @@ def _current_step_from_log(entries: list[dict]) -> int:
         if not (e.get("highlight") and e.get("stage") in (STAGE_DONE, STAGE_ERROR))
     ]
     return min(len(non_terminal), PIPELINE_MAX_STEPS)
+
+
+def format_pct(frac: float) -> str:
+    """Whole-percent label from a 0–1 fraction (primary number in the review UI)."""
+    if frac <= 0:
+        return "0%"
+    if frac >= 1:
+        return "100%"
+    return f"{min(99, max(1, round(frac * 100)))}%"
 
 
 def pipeline_progress(entries: list[dict]) -> tuple[float, str, str, int, int]:

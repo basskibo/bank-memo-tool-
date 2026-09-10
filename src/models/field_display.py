@@ -1,11 +1,13 @@
 """Format extracted field values for display (currency, units)."""
 from __future__ import annotations
 
+import html
 import re
 
 from src.models.schemas import ExtractedField, IngestedDocument, MemoSection
 
 _FOOTNOTE_TAG = re.compile(r"\[(\w+)\]")
+_BRACKET_SPAN = re.compile(r"\[([^\[\]]+)\]")
 
 MONETARY_FIELDS = frozenset({
     "total_assets",
@@ -33,6 +35,25 @@ def _normalize_currency(raw: str) -> str:
     if upper in {"LE", "L.E", "EGYPTIAN POUND", "EGYPTIAN POUNDS"}:
         return "EGP"
     return upper
+
+
+def emphasize_bracket_spans(text: str) -> str:
+    """Keep `[...]` visible but bold+italic.
+
+    GFM treats `[label]` as a link, so `***[label]***` leaks literal asterisks in
+    `st.caption`. HTML emphasis avoids that; callers must pass unsafe_allow_html=True.
+    """
+    if not text:
+        return ""
+    parts: list[str] = []
+    last = 0
+    for match in _BRACKET_SPAN.finditer(text):
+        parts.append(html.escape(text[last:match.start()]))
+        inner = html.escape(match.group(1))
+        parts.append(f"<strong><em>[{inner}]</em></strong>")
+        last = match.end()
+    parts.append(html.escape(text[last:]))
+    return "".join(parts)
 
 
 def infer_currency_from_text(text: str) -> str | None:

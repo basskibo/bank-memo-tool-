@@ -1,4 +1,5 @@
 from src.models.field_display import (
+    emphasize_bracket_spans,
     enrich_field_unit,
     format_field_display_value,
     infer_document_currency,
@@ -57,3 +58,22 @@ def test_format_infers_from_document_when_no_unit():
         pages=[IngestedPage(page_number=1, text="(All figures in USD unless otherwise stated.)", source_file="x.pdf")],
     )
     assert infer_document_currency(doc) == "USD"
+
+
+def test_emphasize_bracket_spans_bold_italic():
+    text = (
+        'p.1 — "Misr Pharma" · [citation_validator] snippet not found verbatim '
+        'on cited page [PAGE 1]'
+    )
+    out = emphasize_bracket_spans(text)
+    assert "<strong><em>[citation_validator]</em></strong>" in out
+    assert "<strong><em>[PAGE 1]</em></strong>" in out
+    assert "Misr Pharma" in out
+    assert "***" not in out
+
+
+def test_emphasize_bracket_spans_escapes_other_markdown():
+    out = emphasize_bracket_spans("note *not italic* [auto: below confidence threshold]")
+    assert "*not italic*" in out
+    assert "***" not in out
+    assert "<strong><em>[auto: below confidence threshold]</em></strong>" in out

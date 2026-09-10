@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pdfplumber
 import pytest
+import pytesseract
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -40,6 +41,40 @@ def test_missing_ocr_binary_rejects_gracefully_not_crash(monkeypatch):
     if not TESSERACT_AVAILABLE:
         assert doc.quality_ok is False
         assert "tesseract" in (doc.quality_notes or "").lower()
+        notes = doc.quality_notes or ""
+        assert notes.count("tesseract nije instaliran") <= 1
+        assert notes.count("pokreni:") == 1
+
+
+def test_tesseract_missing_hint_is_brew_on_macos(monkeypatch):
+    monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "tesseract")
+    monkeypatch.setattr(document_ingestor.sys, "platform", "darwin")
+
+    def _missing(*_args, **_kwargs):
+        raise pytesseract.TesseractNotFoundError()
+
+    monkeypatch.setattr(document_ingestor.pytesseract, "image_to_string", _missing)
+    doc = ingest_document(sample_doc_path(FS_DOC))
+    notes = doc.quality_notes or ""
+    assert doc.quality_ok is False
+    assert "brew install tesseract tesseract-lang" in notes
+    assert "apt install" not in notes
+    assert notes.count("brew install tesseract tesseract-lang") == 1
+
+
+def test_tesseract_missing_hint_is_apt_on_linux(monkeypatch):
+    monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "tesseract")
+    monkeypatch.setattr(document_ingestor.sys, "platform", "linux")
+
+    def _missing(*_args, **_kwargs):
+        raise pytesseract.TesseractNotFoundError()
+
+    monkeypatch.setattr(document_ingestor.pytesseract, "image_to_string", _missing)
+    doc = ingest_document(sample_doc_path(FS_DOC))
+    notes = doc.quality_notes or ""
+    assert "sudo apt install tesseract-ocr tesseract-ocr-ara" in notes
+    assert "brew install" not in notes
+    assert notes.count("sudo apt install") == 1
 
 
 @pytest.mark.skipif(not TESSERACT_AVAILABLE, reason="tesseract-ocr nije instaliran na sistemu")
@@ -84,8 +119,10 @@ def test_ocr_uses_vision_engine_when_configured(monkeypatch):
     iskoristi vraćen tekst kao OCR rezultat. Vidi evaluation/FINDINGS.md 'Vision-LLM alternative'
     za zašto je ova grana dodata (Tesseract/PaddleOCR ne čitaju pouzdano istočno-arapske cifre)."""
     monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "vision")
+    monkeypatch.setattr(document_ingestor, "release_vision_model_for_extract", lambda: None)
 
     fake_response = MagicMock()
+    fake_response.ok = True
     fake_response.raise_for_status.return_value = None
     fake_response.json.return_value = {
         "message": {"content": "شركة دلتا النيل للأغذية ش.م.م\nإجمالي الأصول ١٢٤٬٨٠٠٬٠٠٠"}
@@ -94,9 +131,13 @@ def test_ocr_uses_vision_engine_when_configured(monkeypatch):
     with patch("requests.post", return_value=fake_response) as mock_post:
         doc = ingest_document(sample_doc_path(FS_DOC))
 
-    assert mock_post.called
-    _, kwargs = mock_post.call_args
-    assert "images" in kwargs["json"]["messages"][0]  # slika stvarno poslata modelu
+    chat_calls = [c for c in mock_post.call_args_list if "/api/chat" in c.args[0]]
+    assert chat_calls
+    payload = chat_calls[0].kwargs["json"]
+    assert "images" in payload["messages"][0]
+    assert payload["keep_alive"] == "10m"
+    assert payload["options"]["num_ctx"] == 8192
+    assert chat_calls[-1].kwargs["json"]["keep_alive"] == "10m"
     assert doc.pages[0].ocr_used is True
     assert doc.quality_ok is True
     assert "١٢٤٬٨٠٠٬٠٠٠" in doc.full_text()
@@ -107,6 +148,7 @@ def test_ocr_vision_engine_http_error_surfaces_response_body(monkeypatch):
     nema dovoljno memorije da učita model), poruka MORA da uključi telo odgovora — generičko
     'requests.HTTPError' bez detalja ne pomaže nikom da dijagnostikuje šta se stvarno desilo."""
     monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "vision")
+    monkeypatch.setattr(document_ingestor, "release_vision_model_for_extract", lambda: None)
 
     fake_response = MagicMock()
     fake_response.ok = False
@@ -126,9 +168,58 @@ def test_ocr_vision_engine_unreachable_rejects_gracefully_not_crash(monkeypatch)
     """Ako Ollama vision server nije dostupan (npr. model još nije povučen), ingest_document i
     dalje ne sme da baci exception — ista disciplina kao za tesseract granu."""
     monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "vision")
+    monkeypatch.setattr(document_ingestor, "release_vision_model_for_extract", lambda: None)
 
     with patch("requests.post", side_effect=ConnectionError("mock: server not reachable")):
         doc = ingest_document(sample_doc_path(FS_DOC))
 
     assert doc.quality_ok is False
     assert "vision ocr" in (doc.quality_notes or "").lower()
+
+
+def test_ocr_uses_mlx_vision_engine_when_configured(monkeypatch):
+    monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "mlx_vision")
+    monkeypatch.setattr(document_ingestor, "MLX_VISION_BASE_URL", "http://127.0.0.1:8081")
+    monkeypatch.setattr(
+        document_ingestor,
+        "MLX_VISION_MODEL",
+        "mlx-community/Qwen2.5-VL-7B-Instruct-4bit",
+    )
+
+    fake_response = MagicMock()
+    fake_response.ok = True
+    fake_response.json.return_value = {
+        "choices": [
+            {
+                "message": {
+                    "content": "شركة دلتا النيل للأغذية ش.م.م\nإجمالي الأصول ١٢٤٬٨٠٠٬٠٠٠"
+                }
+            }
+        ]
+    }
+
+    with patch("requests.post", return_value=fake_response) as mock_post:
+        doc = ingest_document(sample_doc_path(FS_DOC))
+
+    chat_calls = [c for c in mock_post.call_args_list if "/v1/chat/completions" in c.args[0]]
+    assert chat_calls
+    assert chat_calls[0].args[0] == "http://127.0.0.1:8081/v1/chat/completions"
+    payload = chat_calls[0].kwargs["json"]
+    assert payload["model"] == "mlx-community/Qwen2.5-VL-7B-Instruct-4bit"
+    assert payload["max_tokens"] == document_ingestor.VISION_OCR_MAX_TOKENS
+    content = payload["messages"][0]["content"]
+    assert any(part.get("type") == "image_url" for part in content)
+    assert doc.pages[0].ocr_used is True
+    assert doc.quality_ok is True
+    assert "١٢٤٬٨٠٠٬٠٠٠" in doc.full_text()
+
+
+def test_ocr_mlx_vision_unreachable_rejects_gracefully(monkeypatch):
+    monkeypatch.setattr(document_ingestor, "OCR_ENGINE", "mlx_vision")
+    monkeypatch.setattr(document_ingestor, "MLX_VISION_BASE_URL", "http://127.0.0.1:8081")
+
+    with patch("requests.post", side_effect=ConnectionError("mock: mlx_vlm down")):
+        doc = ingest_document(sample_doc_path(FS_DOC))
+
+    assert doc.quality_ok is False
+    assert "mlx vision ocr" in (doc.quality_notes or "").lower()

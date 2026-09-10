@@ -14,15 +14,20 @@ from langgraph.graph import END, StateGraph
 from src.agents.citation_validator import validate_citations
 from src.agents.document_ingestor import ingest_document
 from src.agents.financial_wizard import extract_fields
-from src.config import OCR_ENGINE
+from src.config import OCR_ENGINE, mlx_autoswap_enabled, vision_fused_extract_enabled
+from src.llm_client import LLMNotConfigured, check_provider_ready
+from src.logging_setup import get_logger
 from src.models.schemas import ExtractedField, IngestedDocument
 from src.review.pipeline_messages import (
     msg_ingest_done,
     msg_ingest_ocr_page,
+    msg_mlx_loading,
     msg_validate_done,
     msg_validate_field,
     msg_validate_start,
 )
+
+log = get_logger("pipeline")
 
 
 class PipelineState(TypedDict):
@@ -42,12 +47,20 @@ def node_ingest(state: PipelineState) -> PipelineState:
         if on_log:
             on_log(msg_ingest_ocr_page(i, total, OCR_ENGINE))
 
+    def on_status(message: str) -> None:
+        if on_log:
+            role = "vision" if "VL" in message else "text"
+            on_log(msg_mlx_loading(role))
+
     try:
-        document = ingest_document(state["file_path"], on_page_ocr=on_page_ocr)
+        document = ingest_document(
+            state["file_path"], on_page_ocr=on_page_ocr, on_status=on_status,
+        )
         if on_log:
             on_log(msg_ingest_done(document))
         return {**state, "document": document}
     except Exception as exc:  # noqa: BLE001 — POC: surface any ingestion failure to state
+        log.exception("Ingest failed: %s", exc)
         return {**state, "error": f"ingest failed: {exc}"}
 
 
@@ -55,12 +68,29 @@ def node_extract(state: PipelineState) -> PipelineState:
     if state.get("error") or state["document"] is None:
         return state
     cancel_check = state.get("cancel_check")
-    fields = extract_fields(
-        state["document"],
-        on_progress=state.get("on_progress"),
-        cancel_check=cancel_check,
-    )
+    on_log = state.get("on_log")
+    try:
+        # Fused vision engine already produced the fields from the page images while the VL
+        # model was loaded — no text model, no swap. Everything else swaps in the 14B here.
+        prefetched = state["document"].vision_prefetched_fields is not None
+        if mlx_autoswap_enabled() and not (vision_fused_extract_enabled() and prefetched):
+            from src.mlx_servers import ensure_mlx_text
+
+            def on_status(message: str) -> None:
+                if on_log:
+                    on_log(msg_mlx_loading("text"))
+
+            ensure_mlx_text(on_status=on_status)
+        fields = extract_fields(
+            state["document"],
+            on_progress=state.get("on_progress"),
+            cancel_check=cancel_check,
+        )
+    except Exception as exc:  # noqa: BLE001 — POC: surface extract failures to state
+        log.exception("Extract failed: %s", exc)
+        return {**state, "error": f"extract failed: {exc}"}
     if cancel_check and cancel_check():
+        log.info("Extract cancelled")
         return {**state, "fields": fields, "error": "cancelled"}
     return {**state, "fields": fields}
 
@@ -69,6 +99,7 @@ def node_validate(state: PipelineState) -> PipelineState:
     if state.get("error") or state["document"] is None:
         return state
     if state.get("cancel_check") and state["cancel_check"]():
+        log.info("Validate skipped — cancelled")
         return {**state, "error": "cancelled"}
     on_log = state.get("on_log")
     if on_log:
@@ -107,7 +138,6 @@ def run_extraction(
     cancel_check: Callable[[], bool] | None = None,
 ) -> PipelineState:
     """Ingest -> extract -> validate za jedan dokument. Ovo je ono što se meri u PLAN.md Danu 5."""
-    app = build_extraction_graph()
     initial: PipelineState = {
         "file_path": file_path,
         "document": None,
@@ -117,6 +147,12 @@ def run_extraction(
         "on_log": on_log,
         "cancel_check": cancel_check,
     }
+    try:
+        check_provider_ready()
+    except LLMNotConfigured as exc:
+        log.error("Provider not ready: %s", exc)
+        return {**initial, "error": str(exc)}
+    app = build_extraction_graph()
     return app.invoke(initial)
 
 

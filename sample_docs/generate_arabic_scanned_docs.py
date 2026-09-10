@@ -30,16 +30,17 @@ Pokretanje:
 from __future__ import annotations
 
 import random
+import sys
 from pathlib import Path
 
-import arabic_reshaper
-from bidi.algorithm import get_display
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from arabic_font import require_bold, require_regular, shape_arabic as shape
+
 OUT_DIR = Path(__file__).parent
-FONT_DIR = Path("/usr/share/fonts/truetype/noto")
-FONT_REGULAR = FONT_DIR / "NotoNaskhArabic-Regular.ttf"
-FONT_BOLD = FONT_DIR / "NotoNaskhArabic-Bold.ttf"
+FONT_REGULAR = require_regular()
+FONT_BOLD = require_bold()
 
 PAGE_W, PAGE_H = 1654, 2339  # A4 @ 200 DPI — dovoljna rezolucija za pouzdan OCR
 MARGIN = 100
@@ -54,13 +55,6 @@ def ar_num(value: str) -> str:
     """Zapadne cifre/zarez -> istočno-arapske (Indic) cifre + arapski separator hiljada —
     tako realni egipatski finansijski dokumenti ispisuju brojeve (vidi napomenu na vrhu fajla)."""
     return value.translate(_WESTERN_TO_ARABIC_DIGITS)
-
-
-def shape(text: str) -> str:
-    """Arapski tekst mora proći reshape (kontekstualni oblici slova) + bidi (vizuelni RTL
-    redosled) pre iscrtavanja — PIL ne radi ovo samo od sebe, iscrtava slova nepovezano i
-    obrnutim redosledom ako im se prosledi sirov (logical-order) string."""
-    return get_display(arabic_reshaper.reshape(text))
 
 
 def _font(bold: bool, size: int) -> ImageFont.FreeTypeFont:

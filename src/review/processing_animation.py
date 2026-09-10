@@ -10,7 +10,9 @@ from src.review.pipeline_messages import (
     STAGE_INGEST,
     STAGE_MEMO,
     STAGE_VALIDATE,
+    format_pct,
     pipeline_progress,
+    runtime_model_label,
 )
 
 _LOTTIE_DIR = Path(__file__).resolve().parent / "assets" / "lottie"
@@ -21,10 +23,10 @@ _STAGE_FILES = {
     STAGE_MEMO: "writing.json",
 }
 _STAGE_CAPTIONS = {
-    STAGE_INGEST: "Reading PDF pages and running OCR where needed…",
-    STAGE_EXTRACT: "Extracting financial fields with AI…",
-    STAGE_VALIDATE: "Verifying each value against its source page…",
-    STAGE_MEMO: "Drafting credit memo sections…",
+    STAGE_INGEST: "Reading PDF…",
+    STAGE_EXTRACT: "Extracting…",
+    STAGE_VALIDATE: "Verifying sources…",
+    STAGE_MEMO: "Drafting memo…",
 }
 _ANIMATION_CACHE: dict[str, dict] = {}
 
@@ -52,13 +54,37 @@ def animation_stage_from_log(entries: list[dict]) -> str:
     return STAGE_INGEST
 
 
+def processing_caption(entries: list[dict]) -> str:
+    """Human-readable status line for the live processing card."""
+    frac, _, _, _, _ = pipeline_progress(entries)
+    return f"{_stage_caption(entries, animation_stage_from_log(entries))} {format_pct(frac)}"
+
+
 def _stage_caption(entries: list[dict], stage: str) -> str:
     if stage == STAGE_INGEST:
         if any("ocr" in (e.get("message") or "").lower() for e in entries[-3:]):
-            return "Scanning image pages with OCR…"
+            return "Scanning pages…"
         if entries and "opening pdf" in entries[-1].get("message", "").lower():
-            return "Opening PDF and reading pages…"
+            return "Reading PDF…"
     return _STAGE_CAPTIONS[stage]
+
+
+_MODEL_CHIP_ICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" '
+    'fill="currentColor" aria-hidden="true">'
+    '<path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2'
+    'c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 '
+    '3-3s-1.34-3-3-3zM7.5 11.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67'
+    '-1.5-1.5zM16 17H8v-2h8v2zm-1-4c-.83 0-1.5-.67-1.5-1.5S14.17 10 15 10s1.5.67 1.5 '
+    '1.5S15.83 13 15 13z"/></svg>'
+)
+
+
+def _model_chip_kicker(model_label: str) -> str:
+    lowered = model_label.lower()
+    if "no llm" in lowered or "pdfplumber" in lowered or "tesseract" in lowered:
+        return "Engine"
+    return "Model"
 
 
 def render_processing_animation_html(
@@ -69,13 +95,16 @@ def render_processing_animation_html(
     """HTML for st.html — Lottie loop matched to the current pipeline stage."""
     stage = animation_stage_from_log(entries)
     animation_data = _load_animation(stage)
-    _, phase, detail, current, total = pipeline_progress(entries)
-    caption = _stage_caption(entries, stage)
+    frac, phase, detail, _, _ = pipeline_progress(entries)
+    caption = f"{_stage_caption(entries, stage)} {format_pct(frac)}"
+    model_label = runtime_model_label(entries)
     safe_id = html.escape(animation_id, quote=True)
     safe_phase = html.escape(phase)
     safe_detail = html.escape(detail)
     safe_caption = html.escape(caption)
-    progress_text = html.escape(f"{current}/{total} steps")
+    safe_model = html.escape(model_label)
+    safe_kicker = html.escape(_model_chip_kicker(model_label))
+    progress_text = html.escape(format_pct(frac))
     animation_json = json.dumps(animation_data).replace("<", "\\u003c")
 
     return f"""<style>
@@ -128,11 +157,30 @@ def render_processing_animation_html(
 .processing-visual-detail {{
     font-size: 0.86rem; color: #4a5560; line-height: 1.45; margin-bottom: 0.55rem;
 }}
+.processing-visual-pills {{
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem;
+}}
 .processing-visual-meta {{
     display: inline-flex; align-items: center; gap: 0.45rem;
     font-size: 0.74rem; font-weight: 700; color: #0047BA;
     background: rgba(0, 71, 186, 0.08); border-radius: 999px;
     padding: 0.28rem 0.7rem;
+}}
+.processing-visual-model {{
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    max-width: 100%; min-width: 0;
+    font-size: 0.68rem; font-weight: 400; color: #6b7784;
+}}
+.processing-visual-model svg {{
+    flex: 0 0 auto; color: #8a96a3;
+}}
+.processing-visual-model-kicker {{
+    flex: 0 0 auto; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase; font-size: 0.62rem; color: #8a96a3;
+}}
+.processing-visual-model-id {{
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: #5c6773;
 }}
 .processing-visual-meta::before {{
     content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%;
@@ -153,7 +201,14 @@ def render_processing_animation_html(
     <div class="processing-visual-phase">{safe_phase}</div>
     <div class="processing-visual-title">{safe_caption}</div>
     <div class="processing-visual-detail">{safe_detail}</div>
-    <div class="processing-visual-meta">{progress_text}</div>
+    <div class="processing-visual-pills">
+      <div class="processing-visual-meta">{progress_text}</div>
+      <div class="processing-visual-model" title="{safe_kicker}: {safe_model}">
+        {_MODEL_CHIP_ICON}
+        <span class="processing-visual-model-kicker">{safe_kicker}</span>
+        <span class="processing-visual-model-id">{safe_model}</span>
+      </div>
+    </div>
   </div>
 </div>
 <script>
@@ -163,15 +218,16 @@ def render_processing_animation_html(
   var cacheKey = containerId + ":" + stage;
   var animationData = {animation_json};
 
-  function mountLottie() {{
-    if (window.__scbLottieKey === cacheKey && window.__scbLottieAnim) {{
+    function mountLottie() {{
+    var container = document.getElementById(containerId);
+    var alreadyMounted = container && container.childNodes.length > 0;
+    if (window.__scbLottieKey === cacheKey && window.__scbLottieAnim && alreadyMounted) {{
       return;
     }}
     if (window.__scbLottieAnim) {{
       window.__scbLottieAnim.destroy();
       window.__scbLottieAnim = null;
     }}
-    var container = document.getElementById(containerId);
     if (!container || !window.lottie) return;
     window.__scbLottieKey = cacheKey;
     window.__scbLottieAnim = window.lottie.loadAnimation({{

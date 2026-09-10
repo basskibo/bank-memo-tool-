@@ -28,6 +28,9 @@ EXPECTED: dict[str, dict[str, str]] = {
     },
     "acme_trading_loan_application.pdf": {
         "company_name": "confirmed",
+        # Loan application forma nema računovodstveni reporting period ("year ended") — pipeline
+        # ne sme da ga potvrdi. needs_review je ispravno; confirmed = false confidence.
+        "reporting_period": "needs_review",
         "existing_bank_facilities": "confirmed",
         "requested_facility_amount": "confirmed",
         "collateral_offered": "confirmed",

@@ -45,6 +45,10 @@ CLEAN_STATEMENT_STATUS = {
 }
 LOAN_APPLICATION_STATUS = {
     "company_name": "confirmed",
+    # Loan application forme (CBG-CR-01) nemaju računovodstveni reporting period — nema "year
+    # ended", samo "Form rev. 2023". Pipeline NE sme da potvrdi period kog nema u dokumentu;
+    # očekujemo needs_review. Ako model vrati confirmed, to je dangerous mismatch (false confidence).
+    "reporting_period": "needs_review",
     "existing_bank_facilities": "confirmed",
     "requested_facility_amount": "confirmed",
     "collateral_offered": "confirmed",
